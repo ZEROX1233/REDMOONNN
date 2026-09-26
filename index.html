@@ -1,0 +1,2192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#070000">
+  <title>@iFlexxAura</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(80, 0, 0, .22), transparent 35%),
+        radial-gradient(circle at 10% 90%, rgba(120, 0, 0, .12), transparent 30%),
+        #030303;
+      font-family: Arial, sans-serif;
+    }
+    .standalone-hint {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      color: rgba(255, 180, 180, .62);
+      font: 600 12px/1.4 Arial, sans-serif;
+      letter-spacing: .5px;
+      text-align: center;
+      pointer-events: none;
+      opacity: .7;
+    }
+    @media (max-width: 480px) {
+      .standalone-hint { max-width: 90vw; font-size: 11px; }
+    }
+  </style>
+<style id="moon-mobile-bg-final">
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;background:#000!important}
+#moonBgIframe{position:fixed;inset:0;width:100vw;height:100dvh;border:0;z-index:0;display:block;background:#000;pointer-events:auto;touch-action:pan-x pan-y pinch-zoom;-webkit-overflow-scrolling:touch}
+#marco-hud,#marco-fab{z-index:999999!important} #marco-hud,#marco-fab,#marco-hud *{touch-action:none}
+#marco-hud button,#marco-hud input,#marco-hud a{touch-action:manipulation}
+</style>
+
+<style id="moon-wingo-api-page">
+  #marco-hud .api-page{position:absolute;left:5px;right:124px;bottom:5px;height:74px;z-index:8;display:flex;flex-direction:column;gap:3px;padding:4px 5px;border:1px solid rgba(255,70,35,.7);border-radius:8px;background:linear-gradient(180deg,rgba(35,5,5,.96),rgba(7,1,1,.98));box-shadow:inset 0 0 9px rgba(255,45,20,.18),0 0 8px rgba(255,40,20,.25);font-family:Orbitron,sans-serif;pointer-events:none;}
+  #marco-hud .api-title{font-size:6px;letter-spacing:1.1px;color:#ff9b80;text-align:center;font-weight:900;}
+  #marco-hud .api-current{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:3px 4px;border-radius:5px;background:rgba(255,45,25,.12);border:1px solid rgba(255,100,70,.35);font-size:6px;color:#fff;white-space:nowrap;}
+  #marco-hud .api-current b{color:#fff;font-size:8px;letter-spacing:.7px;}
+  #marco-hud .api-current .api-result{color:#7cffa9;font-size:8px;}
+  #marco-hud .api-list{display:flex;gap:3px;overflow:hidden;}
+  #marco-hud .api-row{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;padding:2px 1px;border-radius:4px;background:#160404;border:1px solid rgba(255,75,45,.28);font-size:5px;color:#ffb6a4;}
+  #marco-hud .api-row b{font-size:7px;color:#fff;}
+  #marco-hud .api-row em{font-style:normal;color:#7cffa9;font-size:5px;}
+  #marco-hud .api-offline{color:#ff7777;font-size:6px;text-align:center;}
+  @media (max-width:360px){#marco-hud .api-page{right:100px;height:70px}.api-current{font-size:5px!important}.api-current b,.api-current .api-result{font-size:7px!important}}
+</style>
+
+
+<style id="moon-direct-prediction-final">
+  #marco-hud #viewPrediction{display:block!important;}
+  #marco-hud #viewPage{display:none!important;}
+</style>
+
+
+<style id="moon-api-period-final">
+  #marco-hud .period-text{font-weight:900;letter-spacing:.55px;}
+</style>
+
+</head>
+<body>
+  <iframe id="moonBgIframe" title="Wingo" src="https://www.veergame43.com/#/register?invitationCode=75753104750" scrolling="yes" allow="fullscreen; autoplay; camera; microphone; clipboard-read; clipboard-write" allowtransparency="true"></iframe>
+  <div class="standalone-hint"></div>
+
+  <!-- Original Moon.js is embedded below so this file works as a single standalone HTML file. -->
+  <script>
+
+  (() => {
+    'use strict';
+  
+    /* ============================================================
+       MARCO HUD v7.8 FINAL — SAME-PERIOD RESULT LOCK + CLASSIC RING.JS ORB
+       v7.8 Fixes:
+         1) SAME PERIOD = SAME RESULT: prediction ab period-key pe LOCK hoti
+            hai — kitni bhi baar START dabao, jab tak period same hai result
+            wahi rahega (pehle Math.random() se har click pe naya tha)
+         2) NUMBER RESULT animation Ring.js jaisi CLASSIC orbit rings restore
+            (premium conic rings / gem-dots / runic arc / aura REMOVE)
+       v7.6 Final touches:
+         v7.6 Final touches:
+         1) FULL-PANEL DRAG: panel ke kisi bhi part se drag (buttons/inputs
+            exclude — wo clickable rehte hain), tap-vs-drag threshold guard
+         2) PREMIUM RESULT RINGS: multi-layer conic-gradient rings, gem-dot
+            accents, runic arc, breathing aura — gold/amber premium look
+         3) RINGS pointer-events:none — left side pe touch/drag kabhi block nahi
+         4) PANEL-WIDE PARTICLES: HUD ke andar bhi touch pe dark-red burst
+         (Pichla v7.3 base — MANUAL PREDICTION + DARK-RED GLOW + CENTER FAB)
+       v7.2 Merge (UI 100% SAME — sirf logic add hua):
+         1) PORTAL balance check: balance < Rs.300 -> prediction BLOCK
+            + auto RECHARGE page redirect (Portal jaisa)
+         2) PORTAL WinGo DOM detection (TimeLeft / Betting selectors)
+         3) PORTAL rolling-glow effects: site ke BIG/SMALL/number buttons
+            pe blood-red rolling glow + final-lock
+       UI/design/layout Moon ka bilkul same hai.
+       v7.1 Performance fixes:
+         1) BORDER LAG FIX: canvas shadowBlur HATA DIYA (software raster
+            = lag ka baap) — ab layered strokes se fake glow (same look)
+         2) Panel pe filter:drop-shadow() animation REMOVE (har frame
+            full-panel repaint) — ab band-ember OPACITY pulse (compositor-only)
+         3) Blanket translateZ(*) REMOVE — sirf animated elements pe GPU layer
+         4) Border canvas DPR 1 (4x kam pixels), particles pre-rendered
+            sprite se draw (per-frame gradient nahi)
+         5) DRAG ab transform:translate3d() se — layout thrash khatam
+         6) Tab hidden ho to saare rAF loops auto-pause
+       Changes vs v6.7:
+         1) TICKER scroll system REMOVED — uski jagah DARK RED PARTICLES
+            center container me niche se upar smoothly float karte hain
+         2) EXECUTE animation REPLACE: RED MOON RISE (center) →
+            RAIN + LIGHTNING BLAST → RESULT show
+         1) RESULT area ki khaali jagah premium FX se bhari
+            (confidence bar, mini history, AI CORE LOCK, data-stream)
+         2) FULL GPU ACCELERATION (translateZ, will-change, backface,
+            compositor-only transform/opacity animations)
+         3) EXECUTE button GREEN se DARK RED FIRE vibe me convert
+       Pages: REGISTER / LOGIN / RECHARGE / PREDICTION (WinGo)
+       ============================================================ */
+  
+    const API_URL = 'https://draw.ar-lottery01.com/WinGo/WinGo_1M/GetHistoryIssuePage.json';
+  
+    const CONFIG = {
+      registerLink: 'https://www.veergame43.com/#/register?invitationCode=75753104750',
+      loginLink: 'https://www.yaarwin0.com/#/login',
+      wingoLink: 'https://www.yaarwin0.com/#/saasLottery/WinGo?gameCode=WinGo_30S&lottery=WinGo',
+      rechargePath: '/#/wallet/recharge',
+      balanceThreshold: 300,
+      balanceRefreshMs: 3000,
+      pollMs: 3000
+    };
+  
+    const BALL_DATA = {
+      0: 'https://i.ibb.co/WvTR3Jrx/num0.png', 1: 'https://i.ibb.co/yFQwGPZv/num1.png',
+      2: 'https://i.ibb.co/XZNjXwjq/num2.png', 3: 'https://i.ibb.co/233fFQqz/num3.png',
+      4: 'https://i.ibb.co/mVsBYfQR/num4.png', 5: 'https://i.ibb.co/Dg5kjr9L/num5.png',
+      6: 'https://i.ibb.co/Z1HMQSPM/num6.png', 7: 'https://i.ibb.co/0y8yYzDH/num7.png',
+      8: 'https://i.ibb.co/dsRvZmSf/num8.png', 9: 'https://i.ibb.co/prMV31Ng/num9.png'
+    };
+  
+    /* ---------------- ROUTE DETECTION ---------------- */
+    function detectRoute() {
+      const hash = String(window.location.hash || '').toLowerCase();
+      const href = String(window.location.href || '').toLowerCase();
+      const path = String(window.location.pathname || '').toLowerCase();
+      const all = hash + ' ' + href + ' ' + path;
+  
+      const isRegister =
+        /register/.test(all) ||
+        /[\/#&?]signup(?:[\/?#&=]|$)/.test(all);
+  
+      const isLogin = !isRegister && (
+        /login|signin|sign-in/.test(all)
+      );
+  
+      const isRecharge = !isRegister && !isLogin && (
+        /recharge|re-charge|deposit|wallet|payment|add[-_]?money|top[-_]?up|add[-_]?fund|payin/.test(all)
+      );
+  
+      const isWinGo = !isRegister && !isLogin && !isRecharge && (
+        /wingo|win-go|lottery|colour|color[-_]?game|\/game/.test(all) || detectWinGo()
+      );
+  
+      return { isRegister, isLogin, isRecharge, isWinGo };
+    }
+  
+    /* ---------------- PER-PAGE TEXT CONFIG ---------------- */
+    const PAGE_TEXT = {
+      register: {
+        title: 'REGISTER MODE',
+        pill1: ['MODE:', 'ON'], pill2: ['CORE:', 'AUTH'], pill3: ['NET:', 'LIVE'],
+        statusMain: 'CREATE ACCOUNT',
+        statusSub: 'REGISTER TO UNLOCK PREDICTIONS',
+        statusHint: 'FILL DETAILS BELOW & TAP REGISTER',
+        btn: 'REGISTER',
+        info1: ['STEP', '1/3'], info2: ['MODE', 'SIGNUP'], info3: ['BONUS', 'ACTIVE']
+      },
+      login: {
+        title: 'REGISTER NOW',
+        pill1: ['MODE:', 'ON'], pill2: ['CORE:', 'AUTH'], pill3: ['NET:', 'LIVE'],
+        statusMain: '• WELCOME •',
+        statusSub: 'CREATE NEW ACCOUNT',
+        statusHint: 'REGISTER TO ACCESS',
+        btn: 'REGISTER',
+        info1: ['STEP', '2/3'], info2: ['MODE', 'SIGNIN'], info3: ['SECURE', 'YES']
+      },
+      recharge: {
+        title: 'RECHARGE NOW',
+        pill1: ['SYS:', 'WALLET'], pill2: ['CORE:', 'PAY'], pill3: ['NET:', 'LIVE'],
+        statusMain: 'ADD FUNDS',
+        statusSub: 'RECHARGE 300₹',
+        statusHint: 'COMPLETE PAYMENT & GET SURESHOTS',
+        btn: 'RECHARGE',
+        info1: ['STEP', '3/3'], info2: ['MODE', 'DEPOSIT'], info3: ['MIN', '₹300']
+      },
+      prediction: {
+        title: 'JAGUAR PANNEL',
+        pill1: ['SYS:', 'ARMED'], pill2: ['CORE:', 'SYNC'], pill3: ['PING:', '18MS'],
+        statusMain: 'READY TO START',
+        statusSub: 'TAP START FOR MANUAL PREDICTION',
+        statusHint: 'SERVER READY \u00B7 START PREDICTION',
+        btn: '▶ START',
+        info1: ['SYNC', '99%'], info2: ['MODE', 'CORE'], info3: ['APEX', 'OK']
+      }
+    };
+  
+    function getPageKey() { return 'prediction'; }
+  
+    /* ---------------- CSS ---------------- */
+    const css = `
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@600;700;800&family=Teko:wght@600&display=swap');
+      #marco-hud, #marco-hud * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+  
+      /* ===== GLOBAL GPU ACCELERATION — SCOPED =====
+         (blanket translateZ har element pe alag compositor layer banata tha
+          = layer explosion = LAG. Ab sirf animated elements promote hote hain) */
+      #marco-hud, #marco-fab { -webkit-font-smoothing: antialiased; }
+      #marco-hud .spark,
+      #marco-hud .orbit,
+      #marco-hud .orbit-ring,
+      #marco-hud .diamond,
+      #marco-hud .ball-img,
+      #marco-hud .pred-badge,
+      #marco-hud .scanline,
+      #marco-hud .signal-meter i,
+      #marco-hud .confidence-fill,
+      #marco-hud .mini-hist-dot,
+      #marco-hud .data-stream span,
+      #marco-hud .ritual-img,
+      #marco-hud .blast-ring,
+      #marco-fab {
+        -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+      }
+      /* Elements that animate frequently — hint compositor */
+      #marco-hud .spark,
+      #marco-hud .orbit,
+      #marco-hud .orbit-ring,
+      #marco-hud .diamond,
+      #marco-hud .ball-img,
+      #marco-hud .pred-badge,
+      #marco-hud .pred-badge::after,
+      #marco-hud .pred-badge::before,
+      #marco-hud .drag-header::after,
+      #marco-hud .status-pill::after,
+      #marco-hud .btn-execute::after,
+      #marco-hud .btn-close::after,
+      #marco-hud .scanline,
+      #marco-hud .signal-meter i,
+      #marco-hud .period-text,
+      #marco-hud .streak-chip,
+      #marco-hud .confidence-fill,
+      #marco-hud .mini-hist-dot,
+      #marco-hud .ai-core-chip,
+      #marco-hud .data-stream,
+      #marco-hud .data-stream span,
+      #marco-fab,
+      #marco-fab::after {
+        will-change: transform, opacity;
+        -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+      }
+      /* canvases apne GPU layer pe — repaint page ko touch nahi karta */
+      #marco-hud .marco-storm,
+      #marco-hud .float-particles,
+      #marco-hud .spark-canvas,
+      #marco-hud .ritual-canvas { transform: translateZ(0); }
+  
+      #marco-hud {
+        position: fixed;
+        top: 46px;
+        left: 50%;
+        margin-left: -134px;
+        width: 268px;
+        height: 318px;
+        background: radial-gradient(130% 130% at 50% 0%, #4A0505 0%, #1E0000 55%, #0A0000 100%);
+        border: 3px solid #000;
+        border-radius: 24px;
+        box-shadow: 0 12px 30px rgba(0,0,0,.85), inset 0 0 14px rgba(255,40,40,.16), 0 0 10px rgba(255,0,0,.30), 0 0 26px rgba(255,40,0,.14);
+        z-index: 999999;
+        font-family: Rajdhani, sans-serif;
+        touch-action: none;
+        will-change: transform;
+        contain: layout style paint;
+        cursor: grab;
+      }
+      #marco-hud.is-dragging { cursor: grabbing; }
+      /* interactive controls must NOT trigger drag */
+      #marco-hud .btn-execute,
+      #marco-hud .btn-close,
+      #marco-hud button,
+      #marco-hud input,
+      #marco-hud select,
+      #marco-hud textarea,
+      #marco-hud a { touch-action: manipulation; }
+  
+      /* ===== DOUBLE BORDER: 1) OUTER thick black ring ===== */
+      #marco-hud::after {
+        content: '';
+        position: absolute;
+        inset: -18px;
+        border: 5px solid #000;
+        border-radius: 34px;
+        pointer-events: none;
+        z-index: 3;
+        box-shadow: 0 0 12px rgba(255,0,0,.30), 0 0 32px rgba(255,0,0,.14);
+      }
+  
+      /* ===== DOUBLE BORDER: 2) INNER black ring =====
+         (dono black rings ke beech ka band = RED THUNDER zone) */
+      #marco-hud::before {
+        content: '';
+        position: absolute;
+        inset: -7px;
+        border: 3px solid #000;
+        border-radius: 26px;
+        pointer-events: none;
+        z-index: 3;
+      }
+  
+      /* ===== BAND EMBER: halka red ambient glow around band ===== */
+      #marco-hud .band-ember {
+        position: absolute;
+        inset: -18px;
+        border-radius: 34px;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(130% 130% at 50% 50%, rgba(255,40,20,0) 62%, rgba(255,40,20,.14) 100%);
+        box-shadow: 0 0 9px rgba(255,30,20,.18), inset 0 0 8px rgba(255,40,20,.12);
+        animation: marcoEmberPulse 2.4s ease-in-out infinite; /* opacity-only = compositor, zero repaint */
+        will-change: opacity;
+      }
+  
+      #marco-hud #marco-sparks { position: absolute; inset: -18px; border-radius: 34px; pointer-events: none; z-index: 2; overflow: visible; transition: opacity .45s ease; }
+      #marco-sparks .spark-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+      #marco-sparks .spark {
+        position: absolute;
+        background: linear-gradient(90deg, rgba(255,0,0,0) 0%, #FF1A1A 22%, #FFFFFF 50%, #FF1A1A 78%, rgba(255,0,0,0) 100%);
+        box-shadow: 0 0 6px 2px rgba(255,30,30,.95), 0 0 16px 5px rgba(255,0,0,.55);
+        border-radius: 3px;
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+      #marco-sparks .spark.bolt {
+        background: linear-gradient(180deg, #FFFFFF 0%, #FF3B3B 45%, #B30000 100%);
+        box-shadow: 0 0 10px 3px rgba(255,40,40,.95), 0 0 24px 8px rgba(255,0,0,.6);
+        clip-path: polygon(42% 0, 62% 0, 52% 38%, 72% 38%, 30% 100%, 42% 52%, 24% 52%);
+      }
+  
+      @keyframes marcoEnergyFlow { 0% { background-position: 0 0; filter: brightness(.9); } 50% { filter: brightness(1.12); } 100% { background-position: 300% 0; filter: brightness(.9); } }
+      @keyframes marcoEmberPulse   { 0%,100% { opacity:.5; } 50% { opacity:1; } }
+  
+      #marco-hud .drag-header { position:absolute; top:8px; left:8px; right:8px; height:40px; background:#140404; border:2px solid #FF3B3B; border-radius:26px; color:#FFF; font:900 15px Orbitron,sans-serif; display:flex; justify-content:center; align-items:center; text-shadow:0 0 15px #FF3B3B,0 0 5px rgba(255,255,255,.5); box-shadow:0 0 25px rgba(255,45,45,.9),inset 0 0 15px rgba(255,45,45,.4); cursor:grab; letter-spacing:2px; white-space:nowrap; overflow:hidden; }
+      #marco-hud .telemetry-row { position:absolute; top:56px; left:8px; right:8px; display:flex; justify-content:space-between; gap:3px; }
+      #marco-hud .status-pill {
+        flex:1; position:relative; overflow:hidden;
+        background:linear-gradient(180deg,#2B0A0A 0%,#140404 55%,#0B0202 100%);
+        border:1px solid #B32727; border-radius:24px; padding:3px 6px;
+        font:900 10px Rajdhani,sans-serif; color:#FFFFFF;
+        display:flex; align-items:center; justify-content:center;
+        box-shadow:inset 0 2px 4px rgba(255,255,255,.28), inset 0 -4px 8px rgba(0,0,0,.85), inset 0 0 10px rgba(0,0,0,.6), 0 2px 6px rgba(0,0,0,.5);
+        letter-spacing:.4px; white-space:nowrap;
+      }
+      #marco-hud .status-pill::after {
+        content:''; position:absolute; top:-30%; bottom:-30%; left:-90%; width:50%;
+        background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.6) 50%,transparent 100%);
+        animation:marcoCrystal 3.4s ease-in-out infinite;
+        pointer-events:none;
+      }
+      #marco-hud #pill1::after { animation-delay:0s; }
+      #marco-hud #pill2::after { animation-delay:.45s; }
+      #marco-hud #pill3::after { animation-delay:.9s; }
+      #marco-hud .status-pill span { color:#FFF; margin-left:3px; }
+      #marco-hud .pred-viewport { position:absolute; top:86px; left:8px; right:8px; height:168px; background:#070401; border:1px solid #7A1414; border-radius:16px; box-shadow:inset 0 0 25px rgba(255,45,45,.15),0 8px 20px rgba(0,0,0,.8); overflow:hidden; contain: layout paint; }
+  
+      #marco-hud .page-status { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:14px; text-align:center; }
+      #marco-hud .page-status .ps-main { font:900 17px Orbitron,sans-serif; color:#FF3B3B; letter-spacing:1.5px; text-shadow:0 0 12px rgba(255,45,45,.7); }
+      #marco-hud .page-status .ps-sub { font:700 13px Rajdhani,sans-serif; color:#FFF; letter-spacing:1px; }
+      #marco-hud .page-status .ps-hint { font:600 12px Teko,sans-serif; color:#FF9E9E; letter-spacing:1.5px; animation:marcoBlink 1.6s infinite; }
+  
+      #marco-hud .marco-storm { position:absolute; inset:0; width:100%; height:100%; z-index:0; border-radius:16px; }
+      #marco-hud #viewPrediction { position:relative; z-index:3; }
+      #marco-hud .page-status { z-index:3; }
+  
+      @keyframes marcoBlink { 0%,100%{opacity:1} 50%{opacity:.35} }
+      @keyframes marcoOrbit { 0%{transform:translateZ(0) rotate(65deg) rotateX(60deg) rotateZ(0)} 100%{transform:translateZ(0) rotate(65deg) rotateX(60deg) rotateZ(360deg)} }
+      @keyframes marcoWire { 0%,100%{opacity:.7} 50%{opacity:1} }
+      @keyframes marcoPop { 0%{transform:translateZ(0) scale(.5);opacity:0} 70%{transform:translateZ(0) scale(1.12);opacity:1} 100%{transform:translateZ(0) scale(1);opacity:1} }
+      #marco-hud .orb-container { position:absolute; top:12px; left:4px; width:96px; height:96px; display:flex; justify-content:center; align-items:center; pointer-events:none; }
+      #marco-hud .orb-container > * { pointer-events:none; }
+  
+      #marco-hud .orbit-ring { position:absolute; left:50%; top:50%; border-radius:50%; pointer-events:none; }
+      /* ===== CLASSIC ORBIT RINGS (Ring.js jaisa — simple red spin rings) ===== */
+      #marco-hud .orbit-ring.r1 { width:100px; height:100px; margin:-50px 0 0 -50px; border:2px solid transparent; border-top-color:#FF3B3B; border-right-color:rgba(255,45,45,.15); animation:marcoRingSpin 3s linear infinite; box-shadow:0 0 8px rgba(255,45,45,.55), inset 0 0 6px rgba(255,45,45,.35); }
+      #marco-hud .orbit-ring.r2 { width:86px; height:86px; margin:-43px 0 0 -43px; border:1.5px dashed rgba(255,80,20,.6); animation:marcoRingSpinRev 5s linear infinite; }
+      #marco-hud .orbit-ring.r3 { width:74px; height:74px; margin:-37px 0 0 -37px; border:2px solid transparent; border-bottom-color:#FF3B3B; border-left-color:rgba(255,59,59,.15); animation:marcoRingSpin 2.2s linear infinite; box-shadow:0 0 7px rgba(255,40,40,.55), inset 0 0 5px rgba(255,40,40,.35); }
+      #marco-hud .orbit-ring.r4 { width:60px; height:60px; margin:-30px 0 0 -30px; border:1px dotted rgba(255,255,255,.55); animation:marcoRingSpinRev 7s linear infinite; }
+      /* v7.8: NXT-LEVEL premium orb styles REMOVE — Ring.js classic look restore */
+      @keyframes marcoRingSpin { to { transform:translateZ(0) rotate(360deg); } }
+      @keyframes marcoRingSpinRev { to { transform:translateZ(0) rotate(-360deg); } }
+      @keyframes marcoOrbPulse { 0%,100% { transform:translateZ(0) scale(1); } 50% { transform:translateZ(0) scale(1.08); } } /* filter animation remove — scale composited, glow static */
+      #marco-hud .wireframe { position:absolute; width:86px; height:86px; display:flex; justify-content:center; align-items:center; z-index:1; }
+      #marco-hud .diamond { position:absolute; width:48px; height:48px; border:2px solid rgba(255,45,45,.7); transform:rotate(45deg) translateZ(0); animation:marcoWire 3s infinite; }
+      #marco-hud .h-line { position:absolute; width:26px; height:2px; background:rgba(255,45,45,.9); box-shadow:0 0 10px rgba(255,45,45,.8); }
+      #marco-hud .h-line.top { top:5px; } #marco-hud .h-line.bottom { bottom:5px; }
+      #marco-hud .orbit { position:absolute; width:40px; height:90px; border:1px solid rgba(255,45,45,.7); border-radius:50%; animation:marcoOrbit 4s linear infinite; }
+      #marco-hud .dot { position:absolute; width:6px; height:6px; background:#FFF; border:1px solid #FF3B3B; transform:rotate(45deg) translateZ(0); box-shadow:0 0 8px #FFF; }
+      #marco-hud .dot.top { top:2px; } #marco-hud .dot.bottom { bottom:2px; }
+      #marco-hud .ball-img { width:52px; height:52px; border-radius:50%; z-index:10; position:relative; filter:drop-shadow(0 0 25px rgba(255,255,255,.6)); animation:marcoOrbPulse 2s ease-in-out infinite; }
+      #marco-hud .pop-anim { animation:marcoPop .5s ease-out forwards; }
+  
+      /* ===== NEW: ORB FILLER STACK — RESULT area ki khaali jagah bhari ===== */
+      #marco-hud .orb-filler {
+        position:absolute; left:5px; right:124px; bottom:5px;
+        display:flex; flex-direction:column; gap:3px; z-index:3; pointer-events:none;
+      }
+  
+      /* Confidence bar */
+      #marco-hud .confidence-wrap {
+        width:100%; height:11px; position:relative;
+        background:linear-gradient(180deg,#240A0A 0%,#0E0404 100%);
+        border:1px solid rgba(255,45,45,.6); border-radius:6px; overflow:hidden;
+        box-shadow:inset 0 0 6px rgba(255,45,45,.25), 0 0 8px rgba(255,50,0,.35);
+      }
+      #marco-hud .confidence-fill {
+        position:absolute; left:0; top:0; bottom:0; width:95%;
+        background:linear-gradient(90deg,#FF5A2A 0%,#FF1E1E 40%,#C40000 80%,#5A0000 100%);
+        background-size:200% 100%;
+        box-shadow:0 0 8px rgba(255,80,20,.8);
+        animation:marcoConfFlow 2.2s linear infinite;
+        transform-origin:left center;
+      }
+      #marco-hud .confidence-label {
+        position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+        font:800 7px Orbitron,sans-serif; color:#FFF; letter-spacing:1.2px;
+        text-shadow:0 0 5px rgba(0,0,0,.9), 0 0 6px rgba(255,60,20,.8);
+        z-index:2;
+      }
+      @keyframes marcoConfFlow { 0%{background-position:0 0} 100%{background-position:200% 0} }
+  
+      /* Mini history dots */
+      #marco-hud .mini-hist {
+        display:flex; gap:3px; justify-content:center; align-items:center;
+        padding:2px 4px; border-radius:6px;
+        background:linear-gradient(180deg,#1a0707 0%,#0a0202 100%);
+        border:1px solid rgba(255,80,20,.4);
+        box-shadow:inset 0 0 6px rgba(255,60,0,.2);
+      }
+      #marco-hud .mini-hist-label {
+        font:800 7px Orbitron,sans-serif; color:#FF6B4A; letter-spacing:1px;
+        text-shadow:0 0 4px rgba(255,80,20,.7); margin-right:2px;
+      }
+      #marco-hud .mini-hist-dot {
+        width:7px; height:7px; border-radius:50%;
+        box-shadow:0 0 4px currentColor, inset 0 -1px 2px rgba(0,0,0,.5);
+        animation:marcoDotPulse 1.6s ease-in-out infinite;
+      }
+      #marco-hud .mini-hist-dot.red    { background:#FF2A2A; color:#FF2A2A; }
+      #marco-hud .mini-hist-dot.green  { background:#1AF252; color:#1AF252; }
+      #marco-hud .mini-hist-dot.violet { background:#B14CFF; color:#B14CFF; }
+      #marco-hud .mini-hist-dot:nth-child(2){ animation-delay:0s; }
+      #marco-hud .mini-hist-dot:nth-child(3){ animation-delay:.15s; }
+      #marco-hud .mini-hist-dot:nth-child(4){ animation-delay:.30s; }
+      #marco-hud .mini-hist-dot:nth-child(5){ animation-delay:.45s; }
+      #marco-hud .mini-hist-dot:nth-child(6){ animation-delay:.60s; }
+      @keyframes marcoDotPulse { 0%,100%{transform:translateZ(0) scale(1);opacity:.85} 50%{transform:translateZ(0) scale(1.25);opacity:1} }
+  
+      /* AI Core Locked chip */
+      #marco-hud .ai-core-chip {
+        display:flex; align-items:center; justify-content:center; gap:4px;
+        font:800 7px Orbitron,sans-serif; color:#7CFFB2; letter-spacing:1px;
+        padding:2px 3px; border-radius:6px;
+        background:linear-gradient(180deg,#001a0c 0%,#000705 100%);
+        border:1px solid rgba(124,255,178,.5);
+        box-shadow:0 0 8px rgba(0,255,140,.35), inset 0 0 6px rgba(0,255,140,.2);
+        text-shadow:0 0 6px rgba(0,255,140,.8);
+        animation:marcoAiPulse 1.4s ease-in-out infinite;
+      }
+      #marco-hud .ai-core-chip .dot-live {
+        width:5px; height:5px; border-radius:50%;
+        background:#00FF7A; box-shadow:0 0 6px #00FF7A, 0 0 12px rgba(0,255,120,.7);
+        animation:marcoLiveBlink 1s ease-in-out infinite;
+      }
+      @keyframes marcoAiPulse { 0%,100%{box-shadow:0 0 6px rgba(0,255,140,.3), inset 0 0 5px rgba(0,255,140,.15)} 50%{box-shadow:0 0 14px rgba(0,255,140,.7), inset 0 0 10px rgba(0,255,140,.35)} }
+      @keyframes marcoLiveBlink { 0%,100%{opacity:1;transform:translateZ(0) scale(1)} 50%{opacity:.4;transform:translateZ(0) scale(.75)} }
+  
+      /* Data stream — cyber code line */
+      #marco-hud .data-stream {
+        height:10px; overflow:hidden; position:relative; border-radius:5px;
+        background:linear-gradient(180deg,#160404 0%,#050101 100%);
+        border:1px solid rgba(255,60,0,.35);
+        -webkit-mask:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent);
+                mask:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent);
+      }
+      #marco-hud .data-stream span {
+        display:inline-block; white-space:nowrap;
+        font:700 6px 'Courier New',monospace; letter-spacing:1.2px;
+        color:rgba(255,120,90,.9);
+        text-shadow:0 0 4px rgba(255,80,0,.7);
+        padding-top:1px;
+        animation:marcoStream 12s linear infinite;
+      }
+      @keyframes marcoStream { 0%{transform:translateX(100%) translateZ(0)} 100%{transform:translateX(-100%) translateZ(0)} }
+  
+      /* ---------- INFO CONTAINER (badge + period niche) ---------- */
+      #marco-hud .info-container { position:absolute; top:20px; right:6px; width:104px; display:flex; flex-direction:column; align-items:center; }
+  
+      /* ===== PREMIUM BIG/SMALL BADGE ===== */
+      #marco-hud .pred-badge {
+        position:relative; overflow:hidden;
+        width:100%; height:36px;
+        border-radius:12px;
+        font:900 15px Orbitron,sans-serif;
+        color:#FFF;
+        display:flex; justify-content:center; align-items:center;
+        border:2px solid rgba(255,255,255,.9);
+        letter-spacing:2px;
+        text-shadow:0 2px 6px rgba(0,0,0,.9), 0 0 16px rgba(255,255,255,.65);
+        box-shadow:inset 0 -8px 18px rgba(0,0,0,.5), inset 0 8px 18px rgba(255,255,255,.7), 0 8px 16px rgba(0,0,0,.6), 0 0 22px rgba(255,45,45,.5);
+        background-size:300% 100%;
+        animation:marcoBadgePulse 1.4s ease-in-out infinite, marcoBadgeFlow 3.5s linear infinite, marcoBadgeGlow 1.8s ease-in-out infinite, marcoBadgeBounce 2.6s ease-in-out infinite;
+        margin-bottom:6px;
+      }
+      #marco-hud .pred-badge.big {
+        background-image:linear-gradient(100deg,#FF8A70 0%,#C40000 25%,#FF3B2A 50%,#6E0000 75%,#FF8A70 100%);
+        animation-name:marcoBadgePulse, marcoBadgeFlowGold, marcoBadgeGlow, marcoBadgeBounce;
+      }
+      #marco-hud .pred-badge.small {
+        background-image:linear-gradient(100deg,#8FD2FF 0%,#0D6BB5 25%,#BDE8FF 50%,#095B9E 75%,#8FD2FF 100%);
+        animation-name:marcoBadgePulse, marcoBadgeFlowBlue, marcoBadgeGlowBlue, marcoBadgeBounce;
+      }
+      @keyframes marcoBadgeFlowGold { 0%{background-position:0 0} 100%{background-position:300% 0} }
+      @keyframes marcoBadgeFlowBlue { 0%{background-position:0 0} 100%{background-position:300% 0} }
+      @keyframes marcoBadgeGlow {
+        0%,100% { box-shadow:inset 0 -8px 18px rgba(0,0,0,.5), inset 0 8px 18px rgba(255,255,255,.7), 0 8px 16px rgba(0,0,0,.6), 0 0 16px rgba(255,60,20,.45); }
+        50%     { box-shadow:inset 0 -8px 18px rgba(0,0,0,.5), inset 0 8px 18px rgba(255,255,255,.7), 0 8px 16px rgba(0,0,0,.6), 0 0 34px rgba(255,50,20,.95), 0 0 60px rgba(255,80,20,.5); }
+      }
+      @keyframes marcoBadgeGlowBlue {
+        0%,100% { box-shadow:inset 0 -8px 18px rgba(0,0,0,.5), inset 0 8px 18px rgba(255,255,255,.7), 0 8px 16px rgba(0,0,0,.6), 0 0 16px rgba(80,180,255,.45); }
+        50%     { box-shadow:inset 0 -8px 18px rgba(0,0,0,.5), inset 0 8px 18px rgba(255,255,255,.7), 0 8px 16px rgba(0,0,0,.6), 0 0 34px rgba(100,200,255,.95), 0 0 60px rgba(0,120,255,.5); }
+      }
+      #marco-hud .pred-badge::after {
+        content:''; position:absolute; top:0; left:-80%;
+        width:45%; height:100%;
+        background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.95) 50%,transparent 100%);
+        animation:marcoBadgeShine 2.2s ease-in-out infinite;
+        pointer-events:none;
+      }
+      #marco-hud .pred-badge::before {
+        content:''; position:absolute; top:0; left:-80%;
+        width:22%; height:100%;
+        background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.55) 50%,transparent 100%);
+        animation:marcoBadgeShine 2.2s ease-in-out .5s infinite;
+        pointer-events:none;
+      }
+      @keyframes marcoBadgePulse { 0%,100% { transform:translateZ(0) scale(1); } 50% { transform:translateZ(0) scale(1.07); } }
+      @keyframes marcoBadgeBounce { 0%,100% { transform:translateY(0) translateZ(0) rotate(0deg); } 25% { transform:translateY(-3px) translateZ(0) rotate(-1.2deg); } 50% { transform:translateY(1px) translateZ(0) rotate(1.2deg); } 75% { transform:translateY(-2px) translateZ(0) rotate(-.6deg); } }
+      #marco-hud .pred-badge.big   { text-shadow:0 2px 6px rgba(0,0,0,.9), 0 0 16px rgba(255,255,255,.65), 0 0 30px rgba(255,60,20,.8); }
+      #marco-hud .pred-badge.small { text-shadow:0 2px 6px rgba(0,0,0,.9), 0 0 16px rgba(255,255,255,.65), 0 0 30px rgba(60,170,255,.8); }
+      @keyframes marcoBadgeShine { 0% { transform:translateX(0) translateZ(0); } 55%,100% { transform:translateX(500%) translateZ(0); } }
+  
+      /* ===== PERIOD NUMBER ===== */
+      #marco-hud .period-text {
+        width:100%;
+        font:800 9px Orbitron,sans-serif;
+        color:#FF3B3B;
+        letter-spacing:.5px;
+        white-space:nowrap;
+        text-align:center;
+        background:linear-gradient(180deg,#FFFFFF 0%,#FFEDE3 35%,#FFD3BC 100%);
+        border:1px solid #FFE2D2;
+        padding:3px 2px;
+        border-radius:8px;
+        color:#A80000;
+        text-shadow:0 1px 0 rgba(255,255,255,.9), 0 0 12px rgba(255,255,255,.95);
+        box-shadow:0 0 16px rgba(255,130,70,.95), 0 0 38px rgba(255,60,20,.55), 0 4px 10px rgba(0,0,0,.65), inset 0 2px 4px rgba(255,255,255,1), inset 0 -4px 8px rgba(200,60,0,.35);
+        animation:marcoPeriodGlow 1.8s ease-in-out infinite;
+        margin-top:3px;
+        margin-bottom:5px;
+      }
+      #marco-hud .period-text.flash { animation:marcoPeriodFlash .55s ease-out; }
+      @keyframes marcoPeriodGlow { 0%,100% { box-shadow:0 0 12px rgba(255,130,70,.75), 0 0 26px rgba(255,60,20,.4), 0 4px 10px rgba(0,0,0,.6), inset 0 2px 4px rgba(255,255,255,1), inset 0 -4px 8px rgba(200,60,0,.35); } 50% { box-shadow:0 0 26px rgba(255,160,100,1), 0 0 55px rgba(255,70,20,.9), 0 4px 12px rgba(0,0,0,.7), inset 0 2px 5px rgba(255,255,255,1), inset 0 -4px 9px rgba(200,60,0,.45); } }
+      @keyframes marcoPeriodFlash { 0% { background:#FFF; color:#B30000; transform:translateZ(0) scale(1.2); box-shadow:0 0 32px #FFF, 0 0 60px rgba(255,120,50,.9); } 100% { background:linear-gradient(180deg,#FFFFFF 0%,#FFEDE3 35%,#FFD3BC 100%); color:#A80000; transform:translateZ(0) scale(1); } }
+  
+      /* ===== FILLER FX ===== */
+      #marco-hud .scanline {
+        position:absolute; left:0; right:0; top:-15%; height:30px; z-index:2; pointer-events:none;
+        background:linear-gradient(180deg, transparent 0%, rgba(255,45,45,.05) 30%, rgba(255,45,45,.18) 50%, rgba(255,45,45,.05) 70%, transparent 100%);
+        animation:marcoScanY 3.4s linear infinite;
+      }
+      @keyframes marcoScanY { 0% { transform:translateY(0) translateZ(0); } 100% { transform:translateY(700%) translateZ(0); } }
+  
+      #marco-hud .corner { position:absolute; width:16px; height:16px; z-index:2; pointer-events:none; border:0 solid rgba(255,45,45,.85); animation:marcoCornerPulse 2.4s ease-in-out infinite; }
+      #marco-hud .corner.tl { top:5px; left:5px;  border-top-width:2px; border-left-width:2px;  border-top-left-radius:8px; }
+      #marco-hud .corner.tr { top:5px; right:5px; border-top-width:2px; border-right-width:2px; border-top-right-radius:8px; }
+      #marco-hud .corner.bl { bottom:5px; left:5px;  border-bottom-width:2px; border-left-width:2px;  border-bottom-left-radius:8px; }
+      #marco-hud .corner.br { bottom:5px; right:5px; border-bottom-width:2px; border-right-width:2px; border-bottom-right-radius:8px; }
+      @keyframes marcoCornerPulse { 0%,100% { opacity:.55; } 50% { opacity:1; } }
+  
+      /* ===== FLOATING DARK-RED PARTICLES (niche se upar, smooth) ===== */
+      #marco-hud .float-particles { position:absolute; inset:0; z-index:2; pointer-events:none; border-radius:16px; }
+  
+      /* ===== IMAGE RISE RITUAL (EXECUTE animation) ===== */
+      #marco-hud .ritual-overlay { position:absolute; inset:0; z-index:6; pointer-events:none; overflow:hidden; border-radius:16px; }
+      #marco-hud .ritual-img {
+        position:absolute; left:50%; bottom:-90px; width:78px; height:78px;
+        transform:translate(-50%,0) translateZ(0);
+        animation:marcoImgRise 1.15s cubic-bezier(.2,.75,.25,1) forwards;
+        filter:drop-shadow(0 0 16px rgba(255,40,30,.85)) drop-shadow(0 0 40px rgba(200,0,0,.5));
+        will-change: transform, opacity;
+      }
+      #marco-hud .ritual-img.fade { animation:marcoImgFade .5s ease-in forwards; }
+      #marco-hud .ritual-img.charging { filter:drop-shadow(0 0 30px rgba(255,90,60,1)) drop-shadow(0 0 75px rgba(255,30,20,.85)) brightness(1.55) saturate(1.35); }
+      #marco-hud .ritual-canvas { position:absolute; inset:0; width:100%; height:100%; }
+      #marco-hud .blast-ring { position:absolute; left:50%; top:50%; width:44px; height:44px; border-radius:50%; transform:translate(-50%,-50%) scale(.2) translateZ(0); border:3px solid rgba(255,130,95,.9); box-shadow:0 0 26px rgba(255,60,30,.9), inset 0 0 20px rgba(255,60,30,.7); opacity:0; will-change: transform, opacity; }
+      #marco-hud .blast-ring.go { animation:marcoBlastRing .7s cubic-bezier(.15,.6,.3,1) forwards; }
+      @keyframes marcoBlastRing { 0% { opacity:1; transform:translate(-50%,-50%) scale(.2) translateZ(0); } 100% { opacity:0; transform:translate(-50%,-50%) scale(6) translateZ(0); } }
+      #marco-hud .pred-viewport.blast-3d { animation:marcoBlast3d .6s ease-out; }
+      @keyframes marcoBlast3d { 0% { transform:perspective(600px) translateZ(0) scale(1); } 35% { transform:perspective(600px) translateZ(46px) scale(1.045); } 100% { transform:perspective(600px) translateZ(0) scale(1); } }
+      .marco-fab-bolt { position: fixed; z-index: 999998; pointer-events: none; background:linear-gradient(180deg, rgba(255,255,255,.95) 0%, #FF4A3B 45%, #C40000 75%, rgba(160,0,0,0) 100%); clip-path:polygon(46% 0, 60% 0, 53% 34%, 70% 34%, 36% 100%, 47% 56%, 30% 56%); filter:drop-shadow(0 0 5px rgba(255,50,40,.95)) drop-shadow(0 0 12px rgba(255,0,0,.55)); opacity:0; will-change: transform, opacity; }
+      /* Localized blast highlight: never wash the complete center container red. */
+      #marco-hud .ritual-flash {
+        position:absolute; left:50%; top:55%; width:72px; height:72px;
+        transform:translate(-50%,-50%) translateZ(0); border-radius:50%;
+        background:radial-gradient(circle, rgba(255,220,200,.34) 0%, rgba(255,70,35,.18) 42%, transparent 72%);
+        opacity:0; animation:marcoBlastFlash .6s ease-out forwards;
+        pointer-events:none;
+      }
+      #marco-hud .pred-viewport.ritual-shake { animation:marcoShake .45s linear; }
+      #marco-hud #viewPrediction.ritual-dim { opacity:.12; transition:opacity .35s; }
+      @keyframes marcoImgRise { 0% { bottom:-90px; transform:translate(-50%,0) scale(.5) translateZ(0); opacity:0; } 12% { opacity:1; } 100% { bottom:calc(50% - 39px); transform:translate(-50%,0) scale(1.15) translateZ(0); opacity:1; } }
+      @keyframes marcoImgFade { to { opacity:0; transform:translate(-50%,0) scale(1.6) translateZ(0); filter:blur(4px); } }
+      @keyframes marcoBlastFlash { 0% { opacity:0; transform:translate(-50%,-50%) scale(.65) translateZ(0); } 12% { opacity:.7; } 100% { opacity:0; transform:translate(-50%,-50%) scale(1.25) translateZ(0); } }
+      @keyframes marcoShake { 0%,100% { transform:translate(0,0) translateZ(0); } 20% { transform:translate(-4px,2px) translateZ(0); } 40% { transform:translate(4px,-2px) translateZ(0); } 60% { transform:translate(-3px,-2px) translateZ(0); } 80% { transform:translate(3px,2px) translateZ(0); } }
+  
+      #marco-hud .signal-meter { width:100%; display:flex; align-items:flex-end; justify-content:center; gap:4px; height:18px; margin-top:5px; padding:3px 6px; background:linear-gradient(180deg,#240A0A 0%,#0E0404 100%); border:1px solid rgba(255,45,45,.5); border-radius:8px; box-shadow:0 0 10px rgba(255,45,45,.3), inset 0 0 8px rgba(255,45,45,.16); }
+      #marco-hud .signal-meter i { width:4px; height:12px; border-radius:2px; transform-origin:bottom; background:linear-gradient(180deg,#FF9A85 0%,#FF3B1E 60%,#A80000 100%); box-shadow:0 0 6px rgba(255,60,20,.85); animation:marcoEq .9s ease-in-out infinite; }
+      #marco-hud .signal-meter i:nth-child(1) { animation-delay:0s; }
+      #marco-hud .signal-meter i:nth-child(2) { animation-delay:.12s; }
+      #marco-hud .signal-meter i:nth-child(3) { animation-delay:.24s; }
+      #marco-hud .signal-meter i:nth-child(4) { animation-delay:.36s; }
+      #marco-hud .signal-meter i:nth-child(5) { animation-delay:.48s; }
+      @keyframes marcoEq { 0%,100% { transform:translateZ(0) scaleY(.3); } 50% { transform:translateZ(0) scaleY(1); } }
+  
+      #marco-hud .streak-chip { width:100%; margin-top:5px; font:800 8px Orbitron,sans-serif; letter-spacing:1px; color:#7CFFB2; text-align:center; padding:3px 2px; border-radius:8px; border:1px solid rgba(124,255,178,.55); background:linear-gradient(180deg,#00220F 0%,#000A05 100%); box-shadow:0 0 12px rgba(0,255,140,.3), inset 0 0 8px rgba(0,255,140,.15); text-shadow:0 0 8px rgba(0,255,140,.7); animation:marcoChipBlink 2.2s ease-in-out infinite; }
+      @keyframes marcoChipBlink { 0%,100% { box-shadow:0 0 6px rgba(0,255,140,.2), inset 0 0 6px rgba(0,255,140,.1); } 50% { box-shadow:0 0 18px rgba(0,255,140,.55), inset 0 0 12px rgba(0,255,140,.3); } }
+  
+      #marco-hud button { cursor:pointer; }
+  
+      /* ===== EXECUTE BUTTON — DARK RED FIRE (panel red-vibe match) ===== */
+      #marco-hud .btn-execute {
+        position:absolute; bottom:8px; left:8px;
+        width:calc(100% - 108px); height:42px;
+        background:linear-gradient(180deg,#FF2A00 0%,#C40000 40%,#5A0000 100%);
+        border:1.5px solid #FFB3A1;
+        border-radius:44px;
+        color:#FFF;
+        font:900 11px Orbitron,sans-serif;
+        box-shadow:
+          0 6px 15px rgba(0,0,0,.7),
+          inset 0 3px 6px rgba(255,180,150,.55),
+          inset 0 -5px 10px rgba(60,0,0,.75),
+          0 0 22px rgba(255,40,0,.75),
+          0 0 40px rgba(200,0,0,.45);
+        display:flex; align-items:center; justify-content:center; gap:5px;
+        text-shadow:0 2px 3px rgba(0,0,0,.9), 0 0 8px rgba(255,120,60,.7);
+        letter-spacing:.6px; white-space:nowrap; overflow:hidden;
+        animation:marcoBtnFire 1.9s ease-in-out infinite;
+      }
+      #marco-hud .btn-execute::after {
+        content:''; position:absolute; top:-30%; bottom:-30%; left:-80%;
+        width:45%;
+        background:linear-gradient(105deg,transparent 0%,rgba(255,220,200,.85) 50%,transparent 100%);
+        animation:marcoCrystal 2.8s ease-in-out infinite;
+        pointer-events:none;
+      }
+      #marco-hud .btn-execute::before {
+        content:''; position:absolute; inset:0; border-radius:44px; pointer-events:none;
+        background:linear-gradient(180deg, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 45%);
+      }
+      @keyframes marcoBtnFire {
+        0%,100% { box-shadow:0 6px 15px rgba(0,0,0,.7), inset 0 3px 6px rgba(255,180,150,.55), inset 0 -5px 10px rgba(60,0,0,.75), 0 0 18px rgba(255,40,0,.6), 0 0 32px rgba(200,0,0,.35); }
+        50%     { box-shadow:0 6px 18px rgba(0,0,0,.85), inset 0 3px 6px rgba(255,200,170,.7),  inset 0 -5px 10px rgba(60,0,0,.85), 0 0 34px rgba(255,80,20,1),  0 0 62px rgba(255,20,0,.6); }
+      }
+      #marco-hud .btn-execute:active, #marco-hud .btn-close:active { filter:brightness(1.25); }
+      #marco-hud .btn-execute.loading { background:linear-gradient(180deg,#E02424 0%,#5A0000 100%); }
+  
+      #marco-hud .btn-close {
+        position:absolute; bottom:8px; right:8px; width:84px; height:42px;
+        background:linear-gradient(180deg,#2B0A0A 0%,#140404 60%,#0B0202 100%);
+        border:1px solid #B32727; border-radius:44px; color:#FF3B3B;
+        font:900 11px Orbitron,sans-serif;
+        box-shadow:0 6px 15px rgba(0,0,0,.6),inset 0 3px 6px rgba(255,255,255,.22),inset 0 -5px 10px rgba(0,0,0,.8);
+        overflow:hidden;
+      }
+      #marco-hud .btn-close::after { content:''; position:absolute; top:-30%; bottom:-30%; left:-80%; width:45%; background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.55) 50%,transparent 100%); animation:marcoCrystal 2.8s ease-in-out .7s infinite; pointer-events:none; }
+  
+      #marco-fab {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #000;
+        border: 2px solid #FF0000;
+        color: #FF2A2A;
+        font: 900 13px Orbitron, sans-serif;
+        box-shadow: 0 0 15px rgba(255,0,0,.9), inset 0 0 10px rgba(255,0,0,.5), inset 0 2px 4px rgba(255,255,255,.25);
+        overflow: hidden;
+        z-index: 999999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 1px;
+        animation: marcoFabPulse 1.6s ease-in-out infinite;
+        cursor: grab;
+        padding: 0;
+      }
+      #marco-fab:active { cursor: grabbing; }
+      #marco-fab .fab-img { width:100%; height:100%; object-fit:cover; border-radius:50%; pointer-events:none; display:block; }
+      #marco-fab::after { content:''; position:absolute; top:-30%; bottom:-30%; left:-80%; width:50%; background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.6) 50%,transparent 100%); animation:marcoCrystal 3s ease-in-out infinite; pointer-events:none; }
+      @keyframes marcoFabPulse { 0%,100% { box-shadow: 0 0 10px rgba(255,0,0,.7), inset 0 0 10px rgba(255,0,0,.4); } 50% { box-shadow: 0 0 26px rgba(255,0,0,1), inset 0 0 16px rgba(255,0,0,.8); } }
+  
+  
+      /* ===== TITLE: RED LIGHTNING ===== */
+      #marco-hud .drag-header { overflow:hidden; }
+      #marco-hud .title-text {
+        position:relative; z-index:2;
+        color:#FFFFFF;
+        text-shadow:0 0 10px rgba(255,255,255,.65),0 0 24px rgba(255,255,255,.3);
+      }
+      @keyframes marcoCrystal { 0%{transform:translateX(0) translateZ(0)} 55%,100%{transform:translateX(555%) translateZ(0)} }
+      #marco-hud .drag-header::before {
+        content:''; position:absolute; left:5%; right:5%; top:3px; height:42%; border-radius:20px; z-index:2;
+        background:linear-gradient(180deg,rgba(255,255,255,.32) 0%,rgba(255,255,255,.08) 60%,transparent 100%);
+        pointer-events:none;
+      }
+      #marco-hud .drag-header::after {
+        content:''; position:absolute; top:-20%; bottom:-20%; left:-90%; width:50%; z-index:2;
+        background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.55) 50%,transparent 100%);
+        animation:marcoCrystal 3.8s ease-in-out infinite;
+        pointer-events:none;
+      }
+  
+      @media (max-width: 360px) {
+        #marco-hud .drag-header { font-size:13px; }
+        #marco-hud .page-status .ps-main { font-size:13px; }
+        #marco-hud .orb-container { left:2px; }
+        #marco-hud .info-container { right:4px; width:92px; }
+        #marco-hud .pred-badge { height:32px; font-size:13px; }
+        #marco-hud .period-text { font-size:8px; padding:3px 2px; }
+        #marco-hud .streak-chip { font-size:7px; }
+        #marco-hud .btn-execute { font-size:10px; }
+        #marco-hud .orb-filler { right:100px; }
+      }
+  
+      /* ===== PORTAL MERGE: ROLLING-GLOW (site ke WinGo buttons pe, blood red) ===== */
+      .rolling-glow {
+        animation: wingo1-roll-glow .32s ease-in-out infinite alternate !important;
+        filter: brightness(1.05) saturate(1.6) contrast(1.02) !important;
+        transform: scale(1.03) !important;
+        will-change: box-shadow, filter;
+      }
+      .prediction-active { will-change: transform, filter, box-shadow; }
+      .final-lock {
+        animation: wingo1-final-lock .85s cubic-bezier(.2,.85,.2,1) both !important;
+        filter: brightness(1.1) saturate(1.65) contrast(1.05) !important;
+        position: relative;
+        z-index: 5;
+      }
+      /* FULLY DARK RED glow — bright red nahi */
+      @keyframes wingo1-roll-glow {
+        from { box-shadow: 0 0 6px #4a0000, 0 0 14px rgba(90,0,0,.85), 0 0 24px rgba(70,0,0,.7), 0 0 36px rgba(50,0,0,.5), inset 0 0 10px rgba(80,0,0,.4); }
+        to   { box-shadow: 0 0 10px #5a0000, 0 0 20px #4a0000, 0 0 34px rgba(100,0,0,.95), 0 0 50px rgba(75,0,0,.75), 0 0 68px rgba(55,0,0,.55), inset 0 0 14px rgba(110,10,10,.5); }
+      }
+      @keyframes wingo1-final-lock {
+        0%   { transform: scale(.92); opacity: .55; box-shadow: 0 0 0 transparent; }
+        45%  { transform: scale(1.12); box-shadow: 0 0 10px #4a0000, 0 0 24px #4a0000, 0 0 42px #5a0000, 0 0 64px rgba(100,0,0,.9), 0 0 88px rgba(75,0,0,.75); }
+        100% { transform: scale(1); opacity: 1; box-shadow: 0 0 8px #4a0000, 0 0 18px #4a0000, 0 0 32px rgba(100,0,0,.95), 0 0 48px rgba(75,0,0,.8), 0 0 68px rgba(55,0,0,.6), inset 0 0 12px rgba(110,10,10,.45); }
+      }
+      /* ===== TOUCH BURST FX: pure screen/panel pe touch = dark-red particles (sharp, no blur) ===== */
+      #marco-touch-fx { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9999999; pointer-events: none; }
+      @media (prefers-reduced-motion: reduce) { #marco-touch-fx { display: none; } }
+      @media (prefers-reduced-motion: reduce) { .rolling-glow, .final-lock { animation: none !important; } }
+    `;
+  
+    const el = (tag, props = {}, children = []) => {
+      const node = document.createElement(tag);
+      Object.entries(props).forEach(([key, value]) => {
+        if (key === 'className') node.className = value;
+        else if (key === 'textContent') node.textContent = value;
+        else if (key === 'id') node.id = value;
+        else node.setAttribute(key, value);
+      });
+      children.forEach(child => node.append(child));
+      return node;
+    };
+  
+    /* ---------------- RED THUNDER BORDER (NXT LEVEL) ----------------
+       Dono black borders ke beech ke band me canvas lightning:
+       - glowing red bolts perimeter pe crawl karte hain (smooth trail fade)
+       - forks panel ki taraf crackle karte hain
+       - random surges: full edge-segment white-core thunder + glow burst */
+    function startLightning(hud, layer) {
+      const canvas = el('canvas', { className: 'spark-canvas' });
+      layer.append(canvas);
+      const ctx = canvas.getContext('2d');
+      const DPR = 1; /* border band patla hai — DPR 1 pe bhi crisp dikhta hai, 4x kam pixels = no lag */
+      let W = 0, H = 0, P = 0;
+      const BAND = 14; /* band center offset (canvas px) — dono borders ke beech */
+  
+      function resize() {
+        /* FIX: HUD hidden pe Math.max(1,0)=1 → tiny canvas stretch bug. Skip if dimensions invalid. */
+        const w = layer.offsetWidth;
+        const h = layer.offsetHeight;
+        if (!w || !h) return;
+        W = w; H = h;
+        canvas.width = W * DPR;
+        canvas.height = H * DPR;
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        P = 2 * ((W - 2 * BAND) + (H - 2 * BAND));
+      }
+      resize();
+      window.addEventListener('resize', resize);
+  
+      function pAt(d) {
+        const w = W - 2 * BAND, h = H - 2 * BAND;
+        d = ((d % P) + P) % P;
+        if (d < w) return [BAND + d, BAND];
+        d -= w; if (d < h) return [W - BAND, BAND + d];
+        d -= h; if (d < w) return [W - BAND - d, H - BAND];
+        d -= w; return [BAND, H - BAND - d];
+      }
+  
+      function strokePath(pts, alpha, width) {
+        if (alpha <= 0 || pts.length < 2) return;
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        const trace = () => {
+          ctx.beginPath();
+          pts.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+          ctx.stroke();
+        };
+        /* fake glow: 2 soft under-strokes — shadowBlur HATA DIYA (wahi border lag ka reason tha) */
+        ctx.strokeStyle = `rgba(255,25,15,${alpha * .16})`;
+        ctx.lineWidth = width * 3.4; trace();
+        ctx.strokeStyle = `rgba(255,30,20,${alpha * .38})`;
+        ctx.lineWidth = width * 1.8; trace();
+        ctx.strokeStyle = `rgba(255,35,25,${alpha})`;
+        ctx.lineWidth = width; trace();
+        ctx.strokeStyle = `rgba(255,240,230,${alpha})`;
+        ctx.lineWidth = Math.max(1, width * .32); trace();
+      }
+  
+      function boltPts(s, len) {
+        const pts = [];
+        const cx = W / 2, cy = H / 2;
+        for (let t = 0; t <= len; t += 5) {
+          const p = pAt(s + t);
+          const dx = cx - p[0], dy = cy - p[1];
+          const m = Math.hypot(dx, dy) || 1;
+          const pull = Math.random() * 4.5; /* band ke andar hi rahna chahiye */
+          pts.push([p[0] + (dx / m) * pull + (Math.random() - .5) * 3,
+                    p[1] + (dy / m) * pull + (Math.random() - .5) * 3]);
+        }
+        return pts;
+      }
+  
+      const bolts = [];
+      function spawnBolt() {
+        bolts.push({ s: Math.random() * P, len: 45 + Math.random() * 90, sp: 7 + Math.random() * 9, forkT: 0, life: 0 });
+      }
+  
+      function surge() {
+        const s0 = Math.random() * P;
+        const len = 50 + Math.random() * 70;
+        strokePath(boltPts(s0, len), .95, 5);
+        const p = pAt(s0 + Math.random() * len);
+        const g = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], 22);
+        g.addColorStop(0, 'rgba(255,120,90,.85)');
+        g.addColorStop(.4, 'rgba(255,40,25,.35)');
+        g.addColorStop(1, 'rgba(255,30,20,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(p[0], p[1], 22, 0, Math.PI * 2); ctx.fill();
+      }
+  
+      let last = performance.now();
+      (function frame(now) {
+        requestAnimationFrame(frame);
+        if (document.hidden || hud.style.display === 'none') return;
+        if (!W) { resize(); if (!W) return; } /* FIX: re-init after hidden-resize */
+        const dt = Math.min(50, now - last); last = now;
+  
+        /* smooth fade trail — compositor-friendly */
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'source-over';
+  
+        if (Math.random() < .22) spawnBolt();
+        if (Math.random() < .035) surge();
+  
+        for (let i = bolts.length - 1; i >= 0; i--) {
+          const b = bolts[i];
+          b.s += b.sp * (dt / 16.7);
+          b.life += dt;
+          b.forkT -= dt;
+          strokePath(boltPts(b.s, b.len), .9, 2.6);
+          if (b.forkT <= 0) {
+            b.forkT = 90 + Math.random() * 180;
+            if (Math.random() < .55) {
+              /* inward crackle fork */
+              const p = pAt(b.s + b.len * (.3 + Math.random() * .4));
+              const cx = W / 2, cy = H / 2;
+              const m = Math.hypot(cx - p[0], cy - p[1]) || 1;
+              const fl = 12 + Math.random() * 14;
+              const pts = [[p[0], p[1]]];
+              for (let t = 4; t <= fl; t += 4) {
+                pts.push([p[0] + (cx - p[0]) / m * t + (Math.random() - .5) * 5,
+                          p[1] + (cy - p[1]) / m * t + (Math.random() - .5) * 5]);
+              }
+              strokePath(pts, .8, 1.6);
+            }
+          }
+          if (b.life > 1400 + Math.random() * 900) bolts.splice(i, 1);
+        }
+        if (bolts.length > 7) bolts.splice(0, bolts.length - 7);
+      })(last);
+    }
+  
+    /* ---------------- STORM CANVAS ---------------- */
+    function startStorm(hud, canvas) {
+      const ctx = canvas.getContext('2d');
+      let W = 0, H = 0, flash = 0;
+      const bolts = [];
+      const drops = [];
+  
+      function resize() {
+        /* FIX: HUD hidden ho (display:none) toh offsetWidth=0 aata hai.
+           Math.max(1,0)=1 se canvas 1×1 ban ke poori screen pe stretch hoti thi → red screen.
+           Ab 0-dimension pe skip karte hain; frame loop khud re-init kar leta hai jab HUD visible ho. */
+        const w = canvas.offsetWidth;
+        const h = canvas.offsetHeight;
+        if (!w || !h) return;
+        W = canvas.width = w;
+        H = canvas.height = h;
+        drops.length = 0;
+        for (let i = 0; i < 30; i++) drops.push({
+          x: Math.random() * W, y: Math.random() * H,
+          v: 2 + Math.random() * 3, l: 8 + Math.random() * 16,
+          a: .10 + Math.random() * .22
+        });
+      }
+      resize();
+      window.addEventListener('resize', resize);
+  
+      function makeBolt(x0, y0, x1, y1, disp) {
+        if (disp < 6) return [[x0, y0], [x1, y1]];
+        const mx = (x0 + x1) / 2 + (Math.random() - .5) * disp;
+        const my = (y0 + y1) / 2 + (Math.random() - .5) * disp * .35;
+        return makeBolt(x0, y0, mx, my, disp / 1.8).concat(makeBolt(mx, my, x1, y1, disp / 1.8).slice(1));
+      }
+  
+      function spawnBolt(big) {
+        const sx = Math.random() * W;
+        const ey = H * (.35 + Math.random() * .55);
+        const pts = makeBolt(sx, -8, sx + (Math.random() - .5) * 80, ey, 70);
+        bolts.push({ pts, life: 1, big });
+        if (Math.random() < .65) {
+          const i = 2 + Math.floor(Math.random() * Math.max(1, pts.length - 4));
+          const p = pts[i] || pts[0];
+          const b = makeBolt(p[0], p[1], p[0] + (Math.random() - .5) * 60, p[1] + 20 + Math.random() * 40, 24);
+          bolts.push({ pts: b, life: .8, branch: true });
+        }
+        flash = Math.min(1, flash + (big ? .7 : .35));
+      }
+  
+      (function frame() {
+        requestAnimationFrame(frame);
+        if (document.hidden || hud.style.display === 'none') return;
+        /* FIX: agar resize() ne W=0 chhoda (HUD tab hidden tha), toh ab re-init karo */
+        if (!W) { resize(); if (!W) return; }
+  
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(7,4,1,0.26)';
+        ctx.fillRect(0, 0, W, H);
+  
+        ctx.lineWidth = 1;
+        for (const d of drops) {
+          ctx.globalAlpha = d.a;
+          ctx.strokeStyle = 'rgba(255,70,70,.9)';
+          ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - 1.5, d.y + d.l); ctx.stroke();
+          d.y += d.v; d.x -= .4;
+          if (d.y > H) { d.y = -d.l; d.x = Math.random() * (W + 20); }
+        }
+        ctx.globalAlpha = 1;
+  
+        for (let i = bolts.length - 1; i >= 0; i--) {
+          const b = bolts[i];
+          b.life -= b.branch ? .09 : .07;
+          if (b.life <= 0) { bolts.splice(i, 1); continue; }
+          const flick = (b.life > .75 && Math.random() < .4) ? .35 : 1;
+          const a = Math.max(0, b.life) * flick;
+          const w0 = b.big ? 4 : 3;
+          const trace = () => {
+            ctx.beginPath();
+            b.pts.forEach((p, j) => j ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+            ctx.stroke();
+          };
+          /* shadowBlur remove — layered strokes se same glow, GPU-friendly */
+          ctx.strokeStyle = `rgba(255,20,20,${a * .18})`;
+          ctx.lineWidth = w0 * 3.2; trace();
+          ctx.strokeStyle = `rgba(255,40,40,${a * .85})`;
+          ctx.lineWidth = w0; trace();
+          ctx.strokeStyle = `rgba(255,255,255,${a})`;
+          ctx.lineWidth = 1.2; trace();
+        }
+  
+        const pulse = (Math.sin(Date.now() / 300) + 1) / 2;
+        const g = ctx.createLinearGradient(0, H - 14, 0, H);
+        g.addColorStop(0, 'rgba(255,60,0,0)');
+        g.addColorStop(1, `rgba(255,80,20,${.22 + pulse * .30})`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0, H - 14, W, 14);
+  
+        if (flash > .02) {
+          const centerGlow = ctx.createRadialGradient(W * .5, H * .52, 0, W * .5, H * .52, Math.min(W, H) * .42);
+          centerGlow.addColorStop(0, `rgba(255,235,220,${flash * .07})`);
+          centerGlow.addColorStop(1, 'rgba(255,235,220,0)');
+          ctx.fillStyle = centerGlow;
+          ctx.fillRect(0, 0, W, H);
+          flash *= .82;
+        }
+      })();
+  
+      (function boltTimer() {
+        if (hud.style.display !== 'none') spawnBolt(Math.random() < .3);
+        setTimeout(boltTimer, 380 + Math.random() * 500);
+      })();
+    }
+  
+    /* ---------------- FLOATING DARK-RED PARTICLES (bottom → top) ---------------- */
+    function startFloatParticles(hud, canvas) {
+      const ctx = canvas.getContext('2d');
+      let W = 0, H = 0;
+      const parts = [];
+  
+      function resize() {
+        /* FIX: HUD hidden ho toh offsetWidth=0 → Math.max(1,0)=1 se canvas 1×1 stretch bug.
+           Ab 0-dimension pe skip; frame loop wapas try karta hai jab HUD visible hota hai. */
+        const w = canvas.offsetWidth;
+        const h = canvas.offsetHeight;
+        if (!w || !h) return;
+        W = canvas.width = w;
+        H = canvas.height = h;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+  
+      /* pre-rendered glow sprites — har frame createRadialGradient nahi (10x faster) */
+      const sprites = {};
+      ['139,0,0', '170,10,10'].forEach(col => {
+        const c = document.createElement('canvas'); c.width = c.height = 24;
+        const g2 = c.getContext('2d');
+        const g = g2.createRadialGradient(12, 12, 0, 12, 12, 12);
+        g.addColorStop(0, `rgba(${col},1)`);
+        g.addColorStop(1, `rgba(${col},0)`);
+        g2.fillStyle = g; g2.fillRect(0, 0, 24, 24);
+        sprites[col] = c;
+      });
+  
+      function spawn(scatter) {
+        parts.push({
+          x: Math.random() * W,
+          y: scatter ? Math.random() * H : H + 4 + Math.random() * 12,
+          r: .7 + Math.random() * 1.6,
+          v: .25 + Math.random() * .5,
+          sway: 6 + Math.random() * 14,
+          sf: .4 + Math.random() * 1.2,
+          ph: Math.random() * Math.PI * 2,
+          a: .25 + Math.random() * .45,
+          col: Math.random() < .8 ? '139,0,0' : '170,10,10'
+        });
+      }
+      for (let i = 0; i < 26; i++) spawn(true);
+  
+      (function frame() {
+        requestAnimationFrame(frame);
+        if (document.hidden || hud.style.display === 'none') return;
+        if (!W && canvas.offsetWidth) resize();
+        if (!W) return;
+        ctx.clearRect(0, 0, W, H);
+        const t = Date.now() / 1000;
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const p = parts[i];
+          p.y -= p.v;
+          const x = p.x + Math.sin(t * p.sf + p.ph) * p.sway;
+          const fadeTop = Math.min(1, (H - p.y) / (H * .12) + .15);
+          const fadeBot = Math.min(1, p.y / (H * .10) + .25);
+          const alpha = p.a * Math.min(fadeTop, fadeBot);
+          if (p.y < -6) { parts.splice(i, 1); spawn(false); continue; }
+          const sz = p.r * 6;
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(sprites[p.col], x - sz / 2, p.y - sz / 2, sz, sz);
+        }
+        ctx.globalAlpha = 1;
+        if (parts.length < 26 && Math.random() < .25) spawn(false);
+      })();
+    }
+  
+    /* ---------------- IMAGE RISE RITUAL (EXECUTE animation) ----------------
+       Flow: image rise -> saari energy/spark absorb -> full shine -> 3D blast -> result */
+    const RITUAL_IMG = 'https://i.ibb.co/cc3ChykW/tg-img-1er-LCN.png';
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+  
+    function playRitual(viewport) {
+      return new Promise(resolve => {
+        const predView = document.getElementById('viewPrediction');
+        const sparkLayer = document.getElementById('marco-sparks');
+        if (predView) predView.style.visibility = 'hidden';
+        if (sparkLayer) sparkLayer.style.opacity = '0';
+  
+        const overlay = el('div', { className: 'ritual-overlay' });
+        const canvas = el('canvas', { className: 'ritual-canvas' });
+        const img = el('img', { className: 'ritual-img', src: RITUAL_IMG, alt: '' });
+        const ring = el('div', { className: 'blast-ring' });
+        overlay.append(canvas, img, ring);
+        viewport.append(overlay);
+  
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width = Math.max(1, viewport.offsetWidth);
+        const H = canvas.height = Math.max(1, viewport.offsetHeight);
+        const CX = W / 2, CY = H / 2;
+  
+        /* realistic jagged lightning path (midpoint displacement) */
+        function boltPath(x0, y0, x1, y1, disp) {
+          if (disp < 5) return [[x0, y0], [x1, y1]];
+          const mx = (x0 + x1) / 2 + (Math.random() - .5) * disp;
+          const my = (y0 + y1) / 2 + (Math.random() - .5) * disp * .5;
+          return boltPath(x0, y0, mx, my, disp / 1.8).concat(boltPath(mx, my, x1, y1, disp / 1.8).slice(1));
+        }
+        function strokeBolt(pts, alpha, width) {
+          if (alpha <= 0) return;
+          ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+          const trace = () => {
+            ctx.beginPath();
+            pts.forEach((p, j) => j ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+            ctx.stroke();
+          };
+          ctx.strokeStyle = `rgba(255,40,30,${alpha * .18})`;
+          ctx.lineWidth = width * 3.2; trace();
+          ctx.strokeStyle = `rgba(255,60,40,${alpha})`;
+          ctx.lineWidth = width; trace();
+          ctx.strokeStyle = `rgba(255,235,225,${alpha})`;
+          ctx.lineWidth = Math.max(1, width * .35); trace();
+        }
+        function glow(x, y, r, inner, mid) {
+          const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+          g.addColorStop(0, inner);
+          g.addColorStop(.45, mid);
+          g.addColorStop(1, 'rgba(255,40,20,0)');
+          ctx.fillStyle = g;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+        function runPhase(duration, draw) {
+          return new Promise(res => {
+            const t0 = performance.now();
+            (function frame(now) {
+              const t = Math.min(1, (now - t0) / duration);
+              ctx.clearRect(0, 0, W, H);
+              draw(t);
+              if (t < 1) requestAnimationFrame(frame);
+              else res();
+            })(t0);
+          });
+        }
+  
+        (async () => {
+          /* PHASE 1: image rise (CSS animation ~1.15s) — panel completely clean */
+          await wait(1150);
+  
+          /* PHASE 2: saari energy absorb — edge lightning pulled into the image */
+          const edges = [];
+          for (let i = 0; i < 12; i++) {
+            const side = i % 4;
+            let x, y;
+            if (side === 0)      { x = Math.random() * W; y = -4; }
+            else if (side === 1) { x = W + 4; y = Math.random() * H; }
+            else if (side === 2) { x = Math.random() * W; y = H + 4; }
+            else                 { x = -4; y = Math.random() * H; }
+            edges.push({ x, y, d: Math.random() * .45, sp: .5 + Math.random() * .45 });
+          }
+          await runPhase(1200, t => {
+            for (const e of edges) {
+              const p = Math.min(1, Math.max(0, (t - e.d) / e.sp));
+              if (p <= 0) continue;
+              const tx = e.x + (CX - e.x) * p;
+              const ty = e.y + (CY - e.y) * p;
+              strokeBolt(boltPath(e.x, e.y, tx, ty, 46), .9 * (1 - p * .3), 2.6);
+            }
+            glow(CX, CY, 46 + t * 28, `rgba(255,150,110,${.35 + t * .45})`, `rgba(255,60,30,${.3 + t * .3})`);
+          });
+  
+          /* PHASE 3: full shine — charged core, thin live arcs */
+          img.classList.add('charging');
+          await runPhase(650, t => {
+            glow(CX, CY, 62 + t * 30, `rgba(255,255,255,${.8 * t})`, `rgba(255,140,90,${.55 * t})`);
+            if (Math.random() < .55) {
+              const a = Math.random() * Math.PI * 2;
+              const r0 = 32, r1 = 54 + Math.random() * 22;
+              strokeBolt(boltPath(CX + Math.cos(a) * r0, CY + Math.sin(a) * r0, CX + Math.cos(a) * r1, CY + Math.sin(a) * r1, 14), .85, 1.8);
+            }
+          });
+  
+          /* PHASE 4: smooth 3D blast — shockwave ring + radiating thunder */
+          ring.classList.add('go');
+          viewport.classList.add('blast-3d');
+          img.classList.add('fade');
+          const rays = [];
+          for (let i = 0; i < 10; i++) {
+            rays.push({ a: (i / 10) * Math.PI * 2 + Math.random() * .4, d: Math.random() * .18, sp: .5 + Math.random() * .4 });
+          }
+          const blastP = runPhase(700, t => {
+            /* Keep the blast localized around the core; no full-viewport flash. */
+            glow(CX, CY, 34 + (1 - t) * 18, `rgba(255,220,200,${Math.max(0, .18 - t * .16)})`, `rgba(255,60,30,${Math.max(0, .10 - t * .08)})`);
+            for (const r of rays) {
+              const p = Math.min(1, Math.max(0, (t - r.d) / r.sp));
+              if (p <= 0) continue;
+              const dist = p * Math.max(W, H) * .78;
+              strokeBolt(boltPath(CX, CY, CX + Math.cos(r.a) * dist, CY + Math.sin(r.a) * dist, 42), .95 * (1 - p), 3);
+            }
+          });
+          if (sparkLayer) sparkLayer.style.opacity = '';
+          lightningBlast(viewport);
+          await blastP;
+  
+          viewport.classList.remove('blast-3d');
+          overlay.remove();
+          if (predView) predView.style.visibility = '';
+          resolve();
+        })();
+      });
+    }
+  
+    function lightningBlast(viewport) {
+      const overlay = viewport.querySelector('.ritual-overlay');
+      const flash = el('div', { className: 'ritual-flash' });
+      if (overlay) overlay.append(flash);
+      setTimeout(() => flash.remove(), 700);
+  
+      /* panel shake */
+      viewport.classList.add('ritual-shake');
+      setTimeout(() => viewport.classList.remove('ritual-shake'), 500);
+  
+      /* lightning bolt sparks — existing spark styles reuse (sparkLayer me) */
+      const layer = document.getElementById('marco-sparks');
+      if (!layer) return;
+      const vr = viewport.getBoundingClientRect();
+      const lr = layer.getBoundingClientRect();
+      const cx = vr.left - lr.left + vr.width / 2;
+      const cy = vr.top - lr.top + vr.height / 2;
+      for (let i = 0; i < 9; i++) {
+        const b = el('div', { className: 'spark bolt' });
+        b.style.width = (12 + Math.random() * 10) + 'px';
+        b.style.height = (24 + Math.random() * 20) + 'px';
+        b.style.left = (cx + (Math.random() - .5) * 200) + 'px';
+        b.style.top = (cy + (Math.random() - .5) * 130) + 'px';
+        layer.append(b);
+        b.animate([
+          { opacity: 0, transform: 'translate(-50%,-50%) scale(.5) translateZ(0)' },
+          { opacity: 1, offset: .15, transform: 'translate(-50%,-50%) scale(1.1) translateZ(0)' },
+          { opacity: .2, offset: .4 },
+          { opacity: 1, offset: .58 },
+          { opacity: 0, offset: 1, transform: 'translate(-50%,-50%) scale(.9) translateZ(0)' }
+        ], { duration: 280 + Math.random() * 240, easing: 'ease-out' }).onfinish = () => b.remove();
+      }
+    }
+  
+    /* ---------------- TOUCH BURST FX (dark-red, sharp, no blur) ----------------
+       Har touch/click pe point-of-touch se realistic dark-red particles nikalte hain:
+       - sharp-edged circles (shadowBlur/filter nahi — bilkul crisp)
+       - gravity + friction physics, shrink-to-death
+       - drag/move pe trail burst, pointerdown pe strong burst */
+    function startTouchFx() {
+      if (document.getElementById('marco-touch-fx')) return;
+      const canvas = el('canvas', { id: 'marco-touch-fx' });
+      document.body.append(canvas);
+      const ctx = canvas.getContext('2d');
+      let W = 0, H = 0;
+      function resize() {
+        W = canvas.width = Math.max(1, window.innerWidth);
+        H = canvas.height = Math.max(1, window.innerHeight);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+  
+      const parts = [];
+      const PALETTE = ['#3A0000', '#4A0000', '#5C0000', '#6E0000', '#8B0000', '#A80000', '#C40000', '#E01515', '#FF2626'];
+      function burst(x, y, count, strong) {
+        for (let i = 0; i < count; i++) {
+          const a = Math.random() * Math.PI * 2;
+          const sp = (strong ? 1.5 : 1) * (0.8 + Math.random() * 3.4);
+          parts.push({
+            x: x + (Math.random() - .5) * 4,
+            y: y + (Math.random() - .5) * 4,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp - 0.7,
+            r: 1 + Math.random() * 2.4,
+            life: 1,
+            decay: 0.016 + Math.random() * 0.024,
+            col: PALETTE[(Math.random() * PALETTE.length) | 0],
+            grav: 0.05
+          });
+        }
+        if (parts.length > 340) parts.splice(0, parts.length - 340);
+      }
+  
+      let lastMove = 0;
+      window.addEventListener('pointerdown', e => burst(e.clientX, e.clientY, 24, true), { passive: true });
+      /* PANEL-SPECIFIC BURST: HUD ke andar touch = extra dense premium particles
+         (window listener chalta hi hai, ye sirf panel pe stronger burst add karta hai) */
+      const hudNode = document.getElementById('marco-hud');
+      if (hudNode) {
+        hudNode.addEventListener('pointerdown', e => {
+          burst(e.clientX, e.clientY, 14, true);
+        }, { passive: true });
+      }
+      window.addEventListener('pointermove', e => {
+        if (!(e.buttons & 1) && e.pointerType === 'mouse') return;
+        const now = performance.now();
+        if (now - lastMove < 26) return;
+        lastMove = now;
+        burst(e.clientX, e.clientY, 7, false);
+      }, { passive: true });
+  
+      (function frame() {
+        requestAnimationFrame(frame);
+        if (document.hidden) return;
+        if (!parts.length) { if (W) ctx.clearRect(0, 0, W, H); return; }
+        ctx.clearRect(0, 0, W, H);
+        for (let i = parts.length - 1; i >= 0; i--) {
+          const p = parts[i];
+          p.x += p.vx; p.y += p.vy;
+          p.vx *= 0.965;
+          p.vy = p.vy * 0.965 + p.grav;
+          p.life -= p.decay;
+          if (p.life <= 0) { parts.splice(i, 1); continue; }
+          const rr = Math.max(0.2, p.r * p.life);
+          ctx.globalAlpha = Math.min(1, p.life * 1.5);
+          ctx.fillStyle = p.col;
+          ctx.beginPath(); ctx.arc(p.x, p.y, rr, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      })();
+    }
+  
+    /* ---------------- MINI HISTORY STATE ---------------- */
+    const histState = { colors: ['red', 'green', 'violet', 'red', 'green'] };
+    function pushHistory(colorStr) {
+      const c = String(colorStr || '').toLowerCase();
+      let cls = 'red';
+      if (c.includes('green')) cls = 'green';
+      else if (c.includes('violet') || c.includes('purple')) cls = 'violet';
+      else if (c.includes('red')) cls = 'red';
+      histState.colors.unshift(cls);
+      histState.colors = histState.colors.slice(0, 5);
+      renderHistory();
+    }
+    function renderHistory() {
+      const wrap = document.getElementById('miniHist');
+      if (!wrap) return;
+      // clear existing dots (keep label)
+      [...wrap.querySelectorAll('.mini-hist-dot')].forEach(n => n.remove());
+      histState.colors.forEach(c => wrap.append(el('div', { className: `mini-hist-dot ${c}` })));
+    }
+  
+    function createHud() {
+      if (document.getElementById('marco-hud')) return document.getElementById('marco-hud');
+      document.head.append(el('style', { id: 'marco-hud-styles', textContent: css }));
+  
+      const hud = el('section', { id: 'marco-hud' });
+      const header = el('div', { className: 'drag-header', id: 'marcoTitle' });
+      const titleText = el('span', { className: 'title-text', textContent: 'JAGUAR PANNEL' });
+      header.append(titleText);
+  
+      const telemetry = el('div', { className: 'telemetry-row' }, [
+        el('div', { className: 'status-pill scan', id: 'pill1' }),
+        el('div', { className: 'status-pill core-glow', id: 'pill2' }),
+        el('div', { className: 'status-pill ping-live', id: 'pill3' })
+      ]);
+  
+      /* Prediction view (orb + badge) */
+      const wire = el('div', { className: 'wireframe' }, [
+        el('div', { className: 'diamond' }), el('div', { className: 'h-line top' }),
+        el('div', { className: 'h-line bottom' }), el('div', { className: 'orbit' }),
+        el('div', { className: 'dot top' }), el('div', { className: 'dot bottom' })
+      ]);
+      /* v7.8: Ring.js jaisa classic orb — sirf 4 spin rings + wireframe + ball */
+      const orb = el('div', { className: 'orb-container' }, [
+        el('div', { className: 'orbit-ring r4' }),
+        el('div', { className: 'orbit-ring r3' }),
+        el('div', { className: 'orbit-ring r2' }),
+        el('div', { className: 'orbit-ring r1' }),
+        wire, el('img', { id: 'predNumImg1', className: 'ball-img pop-anim', alt: 'Prediction number' })
+      ]);
+  
+      /* ===== NEW: ORB FILLER (khali jagah bhari) ===== */
+      const confidenceWrap = el('div', { className: 'confidence-wrap' }, [
+        el('div', { id: 'confFill', className: 'confidence-fill' }),
+        el('div', { className: 'confidence-label', textContent: '95% CONFIDENCE' })
+      ]);
+      const miniHist = el('div', { id: 'miniHist', className: 'mini-hist' }, [
+        el('div', { className: 'mini-hist-label', textContent: 'LAST 5' })
+      ]);
+      const aiCore = el('div', { className: 'ai-core-chip' }, [
+        el('span', { className: 'dot-live' }),
+        el('span', { textContent: 'AI CORE: LOCKED ✓' })
+      ]);
+      const dataStream = el('div', { className: 'data-stream' }, [
+        el('span', { textContent: '0xA9F3 ▸ SIG:LOCK ▸ 0xB1C2 ▸ SEED:E8F0 ▸ 0x77AA ▸ HASH:OK ▸ 0xD3C1 ▸ TX:LIVE ▸ 0x4F2B ▸ NODE:SYNC ▸ 0x1E9A ▸ APEX:ARMED ▸' })
+      ]);
+      const orbFiller = el('div', { className: 'orb-filler' }, [
+        confidenceWrap, miniHist, aiCore, dataStream
+      ]);
+  
+      const info = el('div', { className: 'info-container' }, [
+        el('div', { id: 'predSize', className: 'pred-badge big pop-anim', textContent: 'BIG' }),
+        el('div', { id: 'periodTxt', className: 'period-text', textContent: 'PERIOD: ----' }),
+        el('div', { className: 'signal-meter' }, [el('i'), el('i'), el('i'), el('i'), el('i')]),
+        el('div', { className: 'streak-chip', textContent: '\u26A1 SERVER LIVE' })
+      ]);
+      const apiPage = el('div', { className: 'api-page', id: 'apiPage' }, [
+        el('div', { className: 'api-title', textContent: 'WINGO LIVE API · RECENT RESULTS' }),
+        el('div', { className: 'api-current', id: 'apiCurrent' }, [
+          el('span', { textContent: 'PERIOD: ' }), el('b', { id: 'apiPeriod', textContent: '-----' }),
+          el('span', { className: 'api-result', id: 'apiResult', textContent: 'RESULT: --' })
+        ]),
+        el('div', { className: 'api-list', id: 'apiList' }, [el('div', { className: 'api-offline', textContent: 'SYNCING API...' })])
+      ]);
+      const predView = el('div', { id: 'viewPrediction' }, [orb, apiPage, info]);
+  
+      const pageView = el('div', { className: 'page-status', id: 'viewPage', style: 'display:none' }, [
+        el('div', { className: 'ps-main', id: 'psMain' }),
+        el('div', { className: 'ps-sub', id: 'psSub' }),
+        el('div', { className: 'ps-hint', id: 'psHint' })
+      ]);
+  
+      const stormCanvas = el('canvas', { className: 'marco-storm', id: 'marcoStorm' });
+      const fxScan = el('div', { className: 'scanline' });
+      const fxCorners = ['tl', 'tr', 'bl', 'br'].map(c => el('div', { className: `corner ${c}` }));
+      const floatCanvas = el('canvas', { className: 'float-particles', id: 'marcoFloat' });
+      const viewport = el('div', { className: 'pred-viewport' }, [stormCanvas, predView, pageView, fxScan, ...fxCorners, floatCanvas]);
+      const execute = el('button', { className: 'btn-execute', id: 'btnExecute', textContent: '▶ START' });
+      const close = el('button', { id: 'btnHide', className: 'btn-close', textContent: '✘ HIDE' });
+      const bandEmber = el('div', { className: 'band-ember' });
+      const sparkLayer = el('div', { id: 'marco-sparks' });
+      hud.append(header, telemetry, viewport, execute, close, bandEmber, sparkLayer);
+      document.body.append(hud);
+  
+      const fab = el('button', { id: 'marco-fab' });
+      fab.append(el('img', { className: 'fab-img', src: 'https://i.ibb.co/00LzxBq/uploaded-image.jpg', alt: 'HUD' }));
+      document.body.append(fab);
+      startFabLightning(fab);
+  
+      bindHud(hud, header, execute, close, fab);
+      startLightning(hud, sparkLayer);
+      startStorm(hud, stormCanvas);
+      startFloatParticles(hud, floatCanvas);
+      startTouchFx();
+      renderHistory();
+      applyRoute();
+      fetchLatest().then(function(row){
+        if(!row) return;
+        updateApiPage([row]);
+        const raw = row.number ?? row.result ?? row.openNumber ?? row.code ?? row.num;
+        const n = Number(String(raw ?? '').replace(/\D/g,'').slice(-1));
+        const period = String(row.issueNumber ?? row.issue ?? row.period ?? row.gameNo ?? '').trim();
+        if(Number.isFinite(n) && n >= 0 && n <= 9) renderPred({n:n,s:n>=5?'BIG':'SMALL',c:row.colour||row.color||''}, period);
+      }).catch(function(){ });
+      /* PAGE LOAD: HUD hidden, floating icon SCREEN CENTER me visible + movable */
+      hud.style.display = 'none';
+      fab.style.display = 'flex';
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+      fab.style.left = Math.max(0, (window.innerWidth - fab.offsetWidth) / 2) + 'px';
+      fab.style.top = Math.max(0, (window.innerHeight - fab.offsetHeight) / 2) + 'px';
+      return hud;
+    }
+  
+    /* ---------------- PER-PAGE UI APPLY ---------------- */
+    function setPill(id, pair) {
+      const p = document.getElementById(id);
+      if (!p) return;
+      p.textContent = pair[0];
+      p.append(el('span', { textContent: pair[1], id: id === 'pill3' ? 'srvPing' : '' }));
+    }
+  
+    function applyRoute() {
+      const key = getPageKey();
+      const t = PAGE_TEXT[key];
+      const title = document.getElementById('marcoTitle');
+      const btn = document.getElementById('btnExecute');
+      const predView = document.getElementById('viewPrediction');
+      const pageView = document.getElementById('viewPage');
+      if (!title || !btn) return;
+  
+      btn.disabled = false;
+      const tt = title.querySelector('.title-text'); if (tt) tt.textContent = t.title;
+      setPill('pill1', t.pill1); setPill('pill2', t.pill2); setPill('pill3', t.pill3);
+      btn.textContent = t.btn;
+  
+      ['info1', 'info2', 'info3'].forEach((id, i) => {
+        const n = document.getElementById(id);
+        if (!n) return;
+        const pair = [t.info1, t.info2, t.info3][i];
+        n.textContent = pair[0];
+        n.append(el('span', { className: 'white', textContent: pair[1] }));
+      });
+  
+      if (key === 'prediction') {
+        /* Direct Wingo mode: never show CHECKING, balance or Recharge page. */
+        predView.style.display = 'block';
+        pageView.style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = '▶ START';
+        return;
+      } else {
+        predView.style.display = 'none';
+        pageView.style.display = 'flex';
+        document.getElementById('psMain').textContent = t.statusMain;
+        document.getElementById('psSub').textContent = t.statusSub;
+        document.getElementById('psHint').textContent = t.statusHint;
+      }
+    }
+  
+    let lastKey = getPageKey();
+    window.addEventListener('hashchange', () => {
+      const k = getPageKey();
+      if (k !== lastKey) { lastKey = k; applyRoute(); }
+    });
+    setInterval(() => {
+      const k = getPageKey();
+      if (k !== lastKey) { lastKey = k; applyRoute(); }
+    }, 1500);
+  
+    /* ---------------- LIVE PERIOD TRACKER ----------------
+       Site ke WinGo DOM se CURRENT (live/open) period directly padha jata hai
+       (TimeLeft/period/issue elements). DOM pe nahi milta to fallback:
+       last completed issue + 1. Panel hamesha LIVE period dikhata hai. */
+    let lastCompletedIssue = '';
+    let apiCompletedPeriod = '';
+    function readDomLivePeriod() {
+      const sels = [
+        '.TimeLeft__C-id', '[class*="TimeLeft__C-id"]',
+        '[class*="TimeLeft"] [class*="id"]', '[class*="TimeLeft"] [class*="Id"]',
+        '[class*="current"] [class*="period"]', '[class*="issue"]',
+        '[class*="Period"]', '[class*="drawNumber"]'
+      ];
+      for (const sel of sels) {
+        try {
+          const n = document.querySelector(sel);
+          if (!n) continue;
+          const t = String(n.innerText || n.textContent || '').replace(/[^0-9]/g, '');
+          if (t.length >= 8) return t;
+        } catch (e) {}
+      }
+      const all = document.querySelectorAll('div, span');
+      for (const d of all) {
+        const t = String(d.innerText || d.textContent || '').trim();
+        if (/^\d{10,}$/.test(t)) return t;
+      }
+      return '';
+    }
+    function getLivePeriod() {
+      /* API completed period is authoritative; never use iframe DOM/current +1. */
+      return String(apiCompletedPeriod || lastCompletedIssue || '').trim();
+    }
+    function updateLivePeriodText() {
+      const pt = document.getElementById('periodTxt');
+      if (!pt) return;
+      const p = getLivePeriod();
+      if (!p) return;
+      const txt = 'PERIOD: ' + (p.length > 5 ? p.slice(-5) : p);
+      if (pt.textContent !== txt) {
+        pt.textContent = txt;
+        pt.classList.remove('flash'); void pt.offsetWidth; pt.classList.add('flash');
+      }
+    }
+  
+    /* ---------------- TREND PREDICTION ENGINE ----------------
+       Purana result REPEAT nahi hota — pichle ~20 issues ka pattern analyze
+       hota hai: big/small streak correction, number gap weighting,
+       color balance + weighted random -> fresh prediction every time. */
+    function numberToColor(n) {
+      if (n === 0) return 'RED,VIOLET';
+      if (n === 5) return 'GREEN,VIOLET';
+      return ([1, 3, 7, 9].indexOf(n) > -1) ? 'RED' : 'GREEN';
+    }
+  
+    async function fetchHistory() {
+      const response = await fetch(API_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error('API ' + response.status);
+      const json = await response.json();
+      const list = (json && json.data && (json.data.list || json.data)) || [];
+      return Array.isArray(list) ? list : [];
+    }
+
+    function updateApiPage(rows) {
+      const list = Array.isArray(rows) ? rows.filter(Boolean) : [];
+      const current = list[0] || {};
+      const issue = String(current.issueNumber ?? current.issue ?? current.period ?? current.gameNo ?? '').trim();
+      if (issue) { apiCompletedPeriod = issue; lastCompletedIssue = issue; }
+      const raw = current.number ?? current.result ?? current.openNumber ?? current.code ?? current.num;
+      const num = Number(String(raw ?? '').replace(/\D/g, '').slice(-1));
+      const p = document.getElementById('apiPeriod'), r = document.getElementById('apiResult'), wrap = document.getElementById('apiList');
+      if (p) p.textContent = issue ? (issue.length > 5 ? issue.slice(-5) : issue) : '-----';
+      if (r) r.textContent = Number.isFinite(num) && num >= 0 && num <= 9 ? ('RESULT: ' + num + ' · ' + (num >= 5 ? 'BIG' : 'SMALL')) : 'RESULT: --';
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      if (!list.length) { wrap.innerHTML = '<div class="api-offline">API DATA NOT AVAILABLE</div>'; return; }
+      list.slice(0, 3).forEach(function(item){
+        const i = String(item.issueNumber ?? item.issue ?? item.period ?? item.gameNo ?? '').trim();
+        const rawN = item.number ?? item.result ?? item.openNumber ?? item.code ?? item.num;
+        const n = Number(String(rawN ?? '').replace(/\D/g, '').slice(-1));
+        const row = document.createElement('div'); row.className='api-row';
+        row.innerHTML = '<span>' + (i ? i.slice(-5) : '-----') + '</span><b>' + (Number.isFinite(n) ? n : '-') + '</b><em>' + (Number.isFinite(n) ? (n >= 5 ? 'BIG' : 'SMALL') : '--') + '</em>';
+        wrap.appendChild(row);
+      });
+    }
+
+  
+    function predictFromTrend(list) {
+      const items = (Array.isArray(list) ? list : []).slice(0, 20).map(r => {
+        const raw = (r && r.number != null) ? r.number : (r && r.n != null) ? r.n : '';
+        const n = Number(String(raw).replace(/\D/g, ''));
+        return (n >= 0 && n <= 9) ? n : -1;
+      }).filter(n => n >= 0);
+  
+      if (!items.length) {
+        const n = Math.floor(Math.random() * 10);
+        return { n: n, s: n >= 5 ? 'BIG' : 'SMALL' };
+      }
+  
+      /* --- BIG/SMALL streak + ratio analysis --- */
+      let bigStreak = 0, smallStreak = 0;
+      for (const n of items) {
+        if (n >= 5) { if (smallStreak > 0) break; bigStreak++; }
+        else { if (bigStreak > 0) break; smallStreak++; }
+      }
+      const bigRatio = items.filter(n => n >= 5).length / items.length;
+      let pBig = 0.5;
+      if (bigStreak >= 2) pBig = 0.30;          /* streak tootne ka bias */
+      else if (smallStreak >= 2) pBig = 0.70;
+      else if (bigRatio > 0.62) pBig = 0.36;    /* over-correction bias */
+      else if (bigRatio < 0.38) pBig = 0.64;
+      else pBig = 0.5 - (bigRatio - 0.5) * 0.6; /* soft drift correction */
+      const size = Math.random() < pBig ? 'BIG' : 'SMALL';
+  
+      /* --- Number pick: jo number der se aaya / kam aaya usko zyada weight --- */
+      const pool = size === 'BIG' ? [5, 6, 7, 8, 9] : [0, 1, 2, 3, 4];
+      const weights = pool.map(num => {
+        const freq = items.filter(x => x === num).length;
+        const idx = items.indexOf(num);
+        const gap = idx === -1 ? items.length + 2 : idx; /* kabhi nahi aaya = max gap */
+        return (1 / (1 + freq)) * (0.5 + gap * 0.4);
+      });
+      let total = 0;
+      weights.forEach(w => { total += w; });
+      let roll = Math.random() * total, number = pool[0];
+      for (let i = 0; i < pool.length; i++) { roll -= weights[i]; if (roll <= 0) { number = pool[i]; break; } }
+      return { n: number, s: size };
+    }
+  
+    /* ---------------- PREDICTION LOGIC ---------------- */
+    function renderPred(data, period) {
+      const number = String(data.n ?? data.number ?? '0').replace(/\D/g, '').slice(-1) || '0';
+      const size = String(data.s ?? (Number(number) >= 5 ? 'BIG' : 'SMALL')).toUpperCase();
+      const color = String(data.c ?? data.color ?? '').split(',')[0];
+      const badge = document.getElementById('predSize');
+      const image = document.getElementById('predNumImg1');
+      if (!badge || !image) return;
+      badge.textContent = size;
+      badge.className = `pred-badge ${size === 'BIG' ? 'big' : 'small'} pop-anim`;
+      image.src = BALL_DATA[number];
+      if (color) {
+        image.dataset.color = color.toUpperCase();
+        pushHistory(color);
+      }
+      badge.classList.remove('pop-anim'); image.classList.remove('pop-anim');
+      void badge.offsetWidth;
+      badge.classList.add('pop-anim'); image.classList.add('pop-anim');
+      const periodText = String(period || data.period || getLivePeriod() || '');
+      if (periodText) {
+        const pt = document.getElementById('periodTxt');
+        pt.textContent = `PERIOD: ${periodText.length > 5 ? periodText.slice(-5) : periodText}`;
+        pt.classList.remove('flash'); void pt.offsetWidth; pt.classList.add('flash');
+      }
+      /* Confidence bar random flicker between 92-99% for live feel */
+      const cf = document.getElementById('confFill');
+      if (cf) {
+        const pct = 92 + Math.floor(Math.random() * 8);
+        cf.style.width = pct + '%';
+        const lbl = cf.parentElement.querySelector('.confidence-label');
+        if (lbl) lbl.textContent = `${pct}% CONFIDENCE`;
+      }
+      if (data.ping && document.getElementById('srvPing')) document.getElementById('srvPing').textContent = `${data.ping}MS`;
+    }
+  
+    function normalizeResult(response) {
+      const list = response?.data?.list || response?.data || [];
+      return (Array.isArray(list) ? list[0] : list[0]) || null;
+    }
+  
+    async function fetchLatest() {
+      const response = await fetch(API_URL, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      return normalizeResult(await response.json());
+    }
+  
+    /* ---------------- FAB RED THUNDER (realistic, body-fixed bolts) ---------------- */
+    function startFabLightning(fab) {
+      function spawn() {
+        if (fab.style.display === 'none') return;
+        const r = fab.getBoundingClientRect();
+        if (!r.width) return;
+        const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+        const a = Math.random() * Math.PI * 2;
+        const rad = r.width / 2 + 2 + Math.random() * 10;
+        const len = 13 + Math.random() * 12;
+        const b = el('div', { className: 'marco-fab-bolt' });
+        b.style.width = (5 + Math.random() * 3) + 'px';
+        b.style.height = len + 'px';
+        b.style.left = (cx + Math.cos(a) * rad - 3) + 'px';
+        b.style.top = (cy + Math.sin(a) * rad - len / 2) + 'px';
+        document.body.append(b);
+        const rot = Math.round(a * 57.3 + 90 + (Math.random() * 40 - 20));
+        b.animate([
+          { opacity: 0, transform: `rotate(${rot}deg) scale(.4) translateZ(0)` },
+          { opacity: 1, offset: .2, transform: `rotate(${rot}deg) scale(1) translateZ(0)` },
+          { opacity: .25, offset: .45 },
+          { opacity: .95, offset: .6, transform: `rotate(${rot}deg) scale(.95) translateZ(0)` },
+          { opacity: 0, offset: 1 }
+        ], { duration: 240 + Math.random() * 200, easing: 'ease-out' }).onfinish = () => b.remove();
+      }
+      (function loop() {
+        if (fab.style.display !== 'none') {
+          spawn();
+          if (Math.random() < .3) setTimeout(spawn, 90);
+        }
+        setTimeout(loop, 130 + Math.random() * 180);
+      })();
+    }
+  
+    /* ============================================================
+       PORTAL MERGE — LOGIC ONLY (Moon UI untouched)
+       (a) checkBalance  : site ke wallet DOM se balance read
+       (b) detectWinGo   : Portal ke DOM selectors se WinGo detect
+       (c) rolling-glow  : site ke BIG/SMALL/number buttons pe effect
+       (d) LOW BALANCE   : prediction block + recharge redirect
+       ============================================================ */
+  
+    /* ---- (b) WinGo DOM detection (Portal) ---- */
+    function detectWinGo() { return true; }
+  
+    function getWingoGameCode() {
+      const hash = window.location.hash || '';
+      let query = hash.indexOf('?') > -1 ? hash.slice(hash.indexOf('?') + 1) : '';
+      if (!query && window.location.search) query = window.location.search.slice(1);
+      try {
+        const code = new URLSearchParams(query).get('gameCode');
+        if (code) return decodeURIComponent(code).toUpperCase().replace(/[-\s]/g, '_');
+      } catch (e) {}
+      const match = query.match(/(?:^|&)gameCode=([^&]+)/i);
+      return match ? decodeURIComponent(match[1]).toUpperCase().replace(/[-\s]/g, '_') : '';
+    }
+  
+    function getVisibleWingoType() {
+      const activeCard = document.querySelector('.timer-card.active .card-title');
+      if (activeCard && (activeCard.innerText || activeCard.textContent || '').trim()) {
+        return (activeCard.innerText || activeCard.textContent).trim().toLowerCase().replace(/\s+/g, ' ');
+      }
+      const selectors = ['.TimeLeft__C-name', '[class*="TimeLeft__C-name"]', '[class*="TimeLeft"] [class*="name"]'];
+      for (const sel of selectors) {
+        const n = document.querySelector(sel);
+        const text = n && (n.innerText || n.textContent || '').trim();
+        if (text) return text.toLowerCase().replace(/\s+/g, ' ');
+      }
+      return '';
+    }
+  
+    let wingo1ManualMode = null; // 'on' = Wingo 1 tab click, 'off' = other Wingo tab click
+  
+    function detectWingo1() {
+      const visibleType = getVisibleWingoType();
+      if (/wingo\s*1\s*(m|min|minute)\b/.test(visibleType) || /\b1\s*(m|min|minute)\b/.test(visibleType)) return true;
+      if (/wingo\s*(30\s*(s|sec|second)|3\s*(m|min|minute)|5\s*(m|min|minute))\b/.test(visibleType)) return false;
+  
+      const gameCode = getWingoGameCode();
+      if (/^WINGO[_]?1M$/.test(gameCode) || /^WINGO[_]?1MIN$/.test(gameCode)) return true;
+      if (/^WINGO[_]?(30S|3M|5M|30SEC)$/.test(gameCode)) return false;
+  
+      if (wingo1ManualMode === 'on') return true;
+      if (wingo1ManualMode === 'off') return false;
+      const activeEls = document.querySelectorAll('.timer-card.active .card-title, [aria-selected="true"], [aria-current="page"], .active, .selected, [class*="active"], [class*="selected"]');
+      let activeText = '';
+      activeEls.forEach(n => { activeText += ' ' + (n.innerText || n.textContent || '').toLowerCase(); });
+      if (/\bwingo\s*1\s*(m|min|minute)\b/.test(activeText) || /\bw1\b/.test(activeText)) return true;
+      if (/\bwingo\s*(30\s*(s|sec|second)|3\s*(m|min|minute)|5\s*(m|min|minute))\b/.test(activeText)) return false;
+      return false;
+    }
+  
+    /* ---- (c) Rolling-glow effects (Portal verbatim) ---- */
+    function clearWingo1Effects() {
+      document.querySelectorAll('.rolling-glow, .final-lock, .prediction-active').forEach(n => {
+        n.classList.remove('rolling-glow', 'final-lock', 'prediction-active');
+      });
+    }
+  
+    let wingo1RollTimer = null;
+    let wingo1RollToken = 0;
+    function stopWingo1Animation() {
+      wingo1RollToken++;
+      if (wingo1RollTimer) { clearInterval(wingo1RollTimer); wingo1RollTimer = null; }
+      clearWingo1Effects();
+      document.documentElement.classList.remove('wingo1-prediction-on');
+    }
+  
+    function getWingoButtonKind(n) {
+      if (!n) return null;
+      const cls = String(n.className || '').toLowerCase();
+      const txt = String(n.innerText || n.textContent || n.getAttribute('aria-label') || '').toLowerCase();
+      if (cls.indexOf('betting__c-foot-b') > -1 || /\bbig\b/.test(txt)) return 'big';
+      if (cls.indexOf('betting__c-foot-s') > -1 || /\bsmall\b/.test(txt)) return 'small';
+      if (n.getAttribute('data-number') !== null || /numc-item[0-9]/i.test(cls)) return 'number';
+      return null;
+    }
+  
+    function getWingoNumber(n) {
+      if (!n) return null;
+      const data = n.getAttribute('data-number');
+      if (/^[0-9]$/.test(data || '')) return Number(data);
+      let match = String(n.className || '').match(/numC-item([0-9])/i);
+      if (match) return Number(match[1]);
+      match = String(n.innerText || n.textContent || '').match(/(?:^|\D)([0-9])(?:\D|$)/);
+      return match ? Number(match[1]) : null;
+    }
+  
+    function rollBigSmallNumber(finalNumber) {
+      if (!detectWingo1()) { stopWingo1Animation(); return; }
+      const number = Math.max(0, Math.min(9, Number(finalNumber)));
+      const bigBtn = document.querySelector('[class*="Betting__C-foot-b"], [data-bet="big"], [data-type="big"]');
+      const smallBtn = document.querySelector('[class*="Betting__C-foot-s"], [data-bet="small"], [data-type="small"]');
+      const finalNum = document.querySelector('[class*="Betting__C-numC-item' + number + '"], [data-number="' + number + '"]');
+      const finalSize = number >= 5 ? bigBtn : smallBtn;
+  
+      stopWingo1Animation();
+      const token = ++wingo1RollToken;
+      document.documentElement.classList.add('wingo1-prediction-on');
+      let count = 0;
+  
+      wingo1RollTimer = setInterval(() => {
+        if (token !== wingo1RollToken || !detectWingo1()) { stopWingo1Animation(); return; }
+        [bigBtn, smallBtn].forEach((button, index) => {
+          if (!button) return;
+          button.classList.toggle('rolling-glow', (count + index) % 2 === 0);
+          button.classList.add('prediction-active');
+          setTimeout(() => button.classList.remove('prediction-active'), 180);
+        });
+        const randomNumber = Math.floor(Math.random() * 10);
+        const randomBtn = document.querySelector('[class*="Betting__C-numC-item' + randomNumber + '"], [data-number="' + randomNumber + '"]');
+        if (randomBtn) {
+          randomBtn.classList.add('rolling-glow');
+          setTimeout(() => randomBtn.classList.remove('rolling-glow'), 115);
+        }
+        count++;
+        if (count >= 18) {
+          clearInterval(wingo1RollTimer);
+          wingo1RollTimer = null;
+          clearWingo1Effects();
+          if (finalNum) finalNum.classList.add('final-lock');
+          if (finalSize) finalSize.classList.add('final-lock');
+        }
+      }, 105);
+    }
+  
+    function handleWingoBetClick(event) {
+      /* FIX: site ke BIG/SMALL/number buttons pe bet lagane pe glow CHANGE nahi
+         hoga — prediction ka final-lock fixed rahega, animation re-roll nahi. */
+      const clicked = event.target.closest('[class*="Betting__C-foot-b"], [class*="Betting__C-foot-s"], [class*="Betting__C-numC-item"], [data-bet="big"], [data-bet="small"], [data-number]');
+      if (!clicked) return;
+      if (clicked.closest('#marco-hud, #marco-fab')) return;
+      if (!detectWingo1()) { stopWingo1Animation(); return; }
+      /* koi roll/lock change nahi — sirf existing glow untouched rehta hai */
+    }
+  
+    function handleWingoModeClick(event) {
+      const target = event.target && event.target.closest ? event.target.closest('a,button,[role="tab"],[role="button"],div,span') : null;
+      if (!target || target.closest('#marco-hud')) return;
+      const text = String(target.innerText || target.textContent || target.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      if (!text || text.length > 60) return;
+      if (!/wingo|1\s*(m|min|minute)|30\s*(s|sec|second)|3\s*(m|min|minute)|5\s*(m|min|minute)/i.test(text)) return;
+  
+      if (/wingo\s*1\s*(m|min|minute)?\b/i.test(text) || /\b1\s*(m|min|minute)\b/i.test(text)) {
+        wingo1ManualMode = 'on';
+        setTimeout(applyRoute, 80);
+      } else if (/wingo\s*(30\s*(s|sec|second)|3\s*(m|min|minute)|5\s*(m|min|minute))\b/i.test(text) || /\b(30\s*(s|sec|second)|3\s*(m|min|minute)|5\s*(m|min|minute))\b/i.test(text)) {
+        wingo1ManualMode = 'off';
+        stopWingo1Animation();
+        setTimeout(applyRoute, 80);
+      }
+    }
+  
+    if (!window.__wingo1BetListener) {
+      document.addEventListener('click', handleWingoBetClick, true);
+      document.addEventListener('click', handleWingoModeClick, true);
+      window.__wingo1BetListener = true;
+    }
+  
+    /* ---- (a) Balance check (Portal verbatim) ---- */
+    function checkBalance() {
+      if (!detectWinGo()) return null;
+      const selectors = ['[data-v-7b3870ea].Wallet__C-balance-l1 div', '.wallet-balance', '[class*="balance"]', '.money', '.amount'];
+      let node = null;
+      for (const sel of selectors) {
+        try { node = document.querySelector(sel); if (node && node.textContent.indexOf('\u20B9') > -1) break; } catch (e) {}
+      }
+      if (!node) {
+        const allDivs = document.querySelectorAll('div, span');
+        for (const d of allDivs) {
+          const txt = d.textContent || '';
+          if (txt.indexOf('\u20B9') > -1 && /[\d,]+\.?\d*/.test(txt) && d.children.length <= 2 && txt.length < 30) { node = d; break; }
+        }
+      }
+      if (node) {
+        const balanceText = node.textContent || '';
+        /* Portal kabhi "₹300" aur kabhi "300₹" render karta hai. */
+        const match = balanceText.match(/[\u20B9$]\s*([\d,]+\.?\d*)/) ||
+          balanceText.match(/([\d,]+\.?\d*)\s*[\u20B9$]/);
+        if (match) {
+          window.vsCurrentBalance = parseFloat(match[1].replace(/,/g, ''));
+          window.vsBalanceFetched = true;
+          return window.vsCurrentBalance;
+        }
+      }
+      /* null = balance abhi read nahi hua; ise zero samajhkar redirect nahi karna. */
+      return window.vsBalanceFetched ? window.vsCurrentBalance : null;
+    }
+  
+    function fmtBal(n) {
+      return (Math.round(n * 100) / 100).toLocaleString('en-IN');
+    }
+  
+    /* ---- (d) LOW BALANCE: prediction block + recharge redirect ---- */
+    let lowBalRedirected = false;
+    function applyLowBalance(bal) {
+      const predView=document.getElementById('viewPrediction'), pageView=document.getElementById('viewPage'), btn=document.getElementById('btnExecute');
+      if(predView) predView.style.display='block'; if(pageView) pageView.style.display='none'; if(btn&&!btn.disabled) btn.textContent='▶ START';
+    }
+    /* Balance monitor — har 3s (CONFIG.balanceRefreshMs): WinGo page pe
+       balance < threshold -> block + redirect; balance aa jaye -> flag reset */
+    setInterval(() => {
+      if (getPageKey() !== 'prediction') return;
+      if (!detectWinGo()) return;
+      const bal = checkBalance();
+      if (bal !== null && bal < CONFIG.balanceThreshold) applyLowBalance(bal);
+      else if (bal !== null) {
+        lowBalRedirected = false;
+        /* START/ritual ke beech applyRoute() page-status ko wapas visible
+           kar deta tha, isliye READY TO START prediction ke upar chipak raha
+           tha. Sirf initial CHECKING state me UI refresh karo. */
+        const btn = document.getElementById('btnExecute');
+        if (btn && btn.textContent === 'CHECKING...') { btn.disabled=false; btn.textContent='▶ START'; applyRoute(); }
+      }
+    }, CONFIG.balanceRefreshMs);
+  
+    /* ---------------- BEHAVIOR ---------------- */
+    function bindHud(hud, header, execute, close, fab) {
+      let isExecuting = false;
+      let lastIssue = '';
+      /* FIX v7.8: SAME PERIOD = SAME RESULT — per-period prediction cache.
+         Pehle har START click pe predictFromTrend() ke Math.random() rolls
+         naye hote the, isliye same period pe alag-alag result aata tha.
+         Ab prediction period-key pe LOCK: period badalne tak result fixed. */
+      const predCache = {};
+      function lockedPrediction(key, history) {
+        if (predCache[key]) return predCache[key];
+        const keys = Object.keys(predCache);
+        if (keys.length > 6) delete predCache[keys[0]]; /* purane periods clean */
+        predCache[key] = predictFromTrend(history);
+        return predCache[key];
+      }
+  
+      execute.addEventListener('click', async () => {
+        const key = getPageKey();
+        /* Wingo-only standalone mode: no register/login/recharge gate. */
+        if (isExecuting) return;
+        isExecuting = true;
+        execute.textContent = 'SYNCING...';
+        execute.classList.add('loading');
+        /* MANUAL: START dabate hi prediction view reveal */
+        const __pv = document.getElementById('viewPrediction');
+        const __pg = document.getElementById('viewPage');
+        if (__pv) __pv.style.display = 'block';
+        if (__pg) __pg.style.display = 'none';
+        const image = document.getElementById('predNumImg1');
+        const badge = document.getElementById('predSize');
+        image.classList.remove('pop-anim'); badge.classList.remove('pop-anim');
+        const viewport = hud.querySelector('.pred-viewport');
+        const predView = document.getElementById('viewPrediction');
+        predView.classList.add('ritual-dim');
+        try {
+          const [history] = await Promise.all([fetchHistory(), playRitual(viewport)]);
+          updateApiPage(history);
+          if (history && history.length) {
+            const last = history[0] || {};
+            const rawApiNumber = last.number ?? last.result ?? last.openNumber ?? last.code ?? last.num;
+            const apiNumber = Number(String(rawApiNumber ?? '').replace(/\D/g, '').slice(-1));
+            if (!Number.isFinite(apiNumber) || apiNumber < 0 || apiNumber > 9) throw new Error('API result unavailable');
+            const __period = String(last.issueNumber ?? last.issue ?? last.period ?? last.gameNo ?? '').trim();
+            const pred = { n: apiNumber, s: apiNumber >= 5 ? 'BIG' : 'SMALL' };
+            renderPred({ n: pred.n, s: pred.s, c: last.colour || last.color || '', ping: Math.floor(Math.random() * 50) + 10 }, __period);
+            rollBigSmallNumber(pred.n); /* Portal rolling-glow — prediction number pe lock */
+          }
+        } catch (error) {
+          console.error('[Marco HUD]', error);
+          execute.textContent = 'RETRY';
+          /* fail hone pe wapas READY TO START screen */
+          const __pv2 = document.getElementById('viewPrediction');
+          const __pg2 = document.getElementById('viewPage');
+          if (__pv2) __pv2.style.display = 'none';
+          if (__pg2) {
+            __pg2.style.display = 'flex';
+            const __m = document.getElementById('psMain'); if (__m) __m.textContent = 'READY TO START';
+            const __s = document.getElementById('psSub'); if (__s) __s.textContent = 'TAP START FOR PREDICTION';
+            const __h = document.getElementById('psHint'); if (__h) __h.textContent = 'MANUAL MODE \u00B7 AUTO-SYNC OFF';
+          }
+        } finally {
+          predView.classList.remove('ritual-dim');
+          image.classList.add('pop-anim'); badge.classList.add('pop-anim');
+          if (execute.textContent !== 'RETRY') execute.textContent = PAGE_TEXT[getPageKey()].btn;
+          execute.classList.remove('loading'); isExecuting = false;
+        }
+      });
+  
+      close.addEventListener('click', () => {
+        hud.style.display = 'none';
+        fab.style.display = 'flex';
+      });
+      /* ---- FAB: movable (drag) + tap-to-open ---- */
+      let fabDrag = false, fabMoved = false, fsX = 0, fsY = 0, fLeft = 0, fTop = 0, fCurL = 0, fCurT = 0;
+      const fabStart = e => {
+        const p = e.touches ? e.touches[0] : e;
+        const r = fab.getBoundingClientRect();
+        fabDrag = true; fabMoved = false;
+        fsX = p.clientX; fsY = p.clientY;
+        fLeft = r.left; fTop = r.top; fCurL = r.left; fCurT = r.top;
+      };
+      const fabMove = e => {
+        if (!fabDrag) return;
+        const p = e.touches ? e.touches[0] : e;
+        const dx = p.clientX - fsX, dy = p.clientY - fsY;
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) fabMoved = true;
+        if (!fabMoved) return;
+        fCurL = Math.max(0, Math.min(fLeft + dx, window.innerWidth - fab.offsetWidth));
+        fCurT = Math.max(0, Math.min(fTop + dy, window.innerHeight - fab.offsetHeight));
+        /* GPU transform drag — left/top nahi, isliye layout nahi hota */
+        fab.style.transform = `translate3d(${fCurL - fLeft}px, ${fCurT - fTop}px, 0)`;
+        if (e.cancelable) e.preventDefault();
+      };
+      const fabEnd = () => {
+        if (fabDrag && fabMoved) {
+          fab.style.right = 'auto'; fab.style.bottom = 'auto';
+          fab.style.left = fCurL + 'px'; fab.style.top = fCurT + 'px';
+          fab.style.transform = '';
+        }
+        fabDrag = false;
+      };
+      fab.addEventListener('mousedown', fabStart);
+      fab.addEventListener('touchstart', fabStart, { passive: true });
+      document.addEventListener('mousemove', fabMove);
+      document.addEventListener('touchmove', fabMove, { passive: false });
+      document.addEventListener('mouseup', fabEnd);
+      document.addEventListener('touchend', fabEnd);
+      fab.addEventListener('click', () => {
+        if (fabMoved) { fabMoved = false; return; }
+        fab.style.display = 'none';
+        hud.style.display = 'block';
+        /* SPA route/balance may have changed while the panel was hidden. */
+        applyRoute();
+      });
+  
+      /* ===== FULL-PANEL DRAG =====
+         Header hi nahi — panel ke KISI BHI part se drag chalega.
+         Sirf interactive controls (buttons/inputs/links) drag ko trigger nahi karte. */
+      let dragging = false, dragArmed = false, startX = 0, startY = 0, left = 0, top = 0, curLeft = 0, curTop = 0;
+      const DRAG_THRESHOLD = 5; /* px — tap vs drag guard */
+      const isInteractive = (target) => {
+        if (!target || target === hud) return false;
+        /* explicit no-drag opt-out class support (future-proof) */
+        if (target.closest && target.closest('.no-drag')) return true;
+        const tag = (target.tagName || '').toLowerCase();
+        if (tag === 'button' || tag === 'input' || tag === 'select' || tag === 'textarea' || tag === 'a' || tag === 'label') return true;
+        if (target.closest && target.closest('button, input, select, textarea, a, label, .no-drag')) return true;
+        return false;
+      };
+      const startDrag = event => {
+        if (isInteractive(event.target)) return; /* buttons still clickable */
+        const point = event.touches ? event.touches[0] : event;
+        const rect = hud.getBoundingClientRect();
+        hud.style.marginLeft = '0';
+        hud.style.left = `${rect.left}px`;
+        hud.style.top = `${rect.top}px`;
+        dragArmed = true; dragging = false;
+        startX = point.clientX; startY = point.clientY;
+        left = rect.left; top = rect.top; curLeft = left; curTop = top;
+      };
+      const moveDrag = event => {
+        if (!dragArmed) return;
+        const point = event.touches ? event.touches[0] : event;
+        const dx = point.clientX - startX, dy = point.clientY - startY;
+        if (!dragging) {
+          if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
+          dragging = true;
+          hud.classList.add('is-dragging');
+        }
+        const w = hud.offsetWidth, h = hud.offsetHeight;
+        curLeft = Math.max(0, Math.min(left + dx, window.innerWidth - w));
+        curTop = Math.max(0, Math.min(top + dy, window.innerHeight - h));
+        /* GPU transform drag — layout thrash khatam, butter smooth */
+        hud.style.transform = `translate3d(${curLeft - left}px, ${curTop - top}px, 0)`;
+        if (event.cancelable) event.preventDefault();
+      };
+      const stopDrag = () => {
+        if (!dragArmed) return;
+        if (dragging) {
+          hud.style.left = `${curLeft}px`;
+          hud.style.top = `${curTop}px`;
+          hud.style.transform = '';
+          hud.classList.remove('is-dragging');
+        }
+        dragArmed = false; dragging = false;
+      };
+      /* Bind to WHOLE panel — not just header */
+      hud.addEventListener('mousedown', startDrag);
+      hud.addEventListener('touchstart', startDrag, { passive: true });
+      /* keep header bindings too as a safe redundancy (no-op if hud already handled) */
+      header.addEventListener('mousedown', startDrag);
+      header.addEventListener('touchstart', startDrag, { passive: true });
+      document.addEventListener('mousemove', moveDrag);
+      document.addEventListener('touchmove', moveDrag, { passive: false });
+      document.addEventListener('mouseup', stopDrag);
+      document.addEventListener('touchend', stopDrag);
+      document.addEventListener('touchcancel', stopDrag);
+  
+      const poll = async () => {
+        /* MANUAL MODE: auto prediction show NAHI hoga — sirf latest issue
+           silently track hota hai taaki START dabane pe fresh result aaye */
+        if (getPageKey() !== 'prediction') return;
+        try {
+          const result = await fetchLatest();
+          const resultIssue = result && String(result.issueNumber ?? result.issue ?? result.period ?? result.gameNo ?? '').trim();
+          if (resultIssue && resultIssue !== lastIssue) lastIssue = resultIssue;
+          if (result) updateApiPage([result]);
+          updateLivePeriodText(); /* latest completed period from API */
+        } catch (error) { console.warn('[Marco HUD] background fetch failed:', error.message); }
+      };
+      poll();
+      setInterval(poll, CONFIG.pollMs);
+    }
+  
+
+    (function setupMoonIframe(){
+      const frame=document.getElementById('moonBgIframe'); if(!frame) return;
+      const fit=()=>{const v=window.visualViewport;frame.style.width=(v?v.width:innerWidth)+'px';frame.style.height=(v?v.height:innerHeight)+'px';};
+      const tune=()=>{try{const d=frame.contentDocument;if(d&&d.body){d.body.style.margin='0';d.body.style.overflowX='hidden';d.body.style.touchAction='pan-x pan-y pinch-zoom';}}catch(e){}};
+      fit(); tune(); frame.addEventListener('load',tune,{passive:true}); addEventListener('resize',fit,{passive:true}); addEventListener('orientationchange',()=>setTimeout(fit,150),{passive:true}); if(window.visualViewport) visualViewport.addEventListener('resize',fit,{passive:true});
+    })();
+    const start = () => createHud();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+  })();
+  </script>
+</body>
+</html>
